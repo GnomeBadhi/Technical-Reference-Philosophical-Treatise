@@ -39,3 +39,7 @@ Copyright © 2026 Gnome Badhi. All rights reserved.
 ## Documentation Index
 
 Explore the documentation index [INDEX.md](docs/INDEX.md) for multiple reading paths available to enhance your understanding of the project.
+
+![Theory → Hardware Bridge](docs/image_64cfa973.png)
+
+*This image shows how the six kernel operators map directly onto physical hardware, mapping Boundary, Locality, Identity, Coupling, Propagation, and Domain to their concrete electrical expressions in the circuit.*

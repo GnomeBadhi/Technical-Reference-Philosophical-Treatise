@@ -39,5 +39,3 @@ Copyright © 2026 Gnome Badhi. All rights reserved.
 ## Documentation Index
 
 Explore the documentation index [INDEX.md](docs/INDEX.md) for multiple reading paths available to enhance your understanding of the project.
-
-![Theory → Hardware Bridge: mapping kernel operators to physical hardware](docs/image_64cfa973.png)

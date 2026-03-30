@@ -178,3 +178,39 @@ These examples demonstrate the generality of the execution model.
 ## 8. Pseudocode Specification
 
 Below is an abstract pseudocode representation of the execution cycle:
+
+if DC.validate(proposal):
+    state = DC.execute_transition(state, proposal)
+    AC.update_reinforcement(state)
+    DC.stabilize(state)
+else:
+    DC.stabilize(state)
+
+    This pseudocode captures the core semantics without binding the model to any specific substrate or implementation language.
+
+---
+
+## 9. Summary
+
+The dual‑kernel execution model defines a structured interaction between:
+
+- a **DC Core Kernel** that provides a discrete, invariant logical substrate, and  
+- an **AC Boundary Kernel** that provides dynamic, frequency‑driven control.
+
+Computation emerges from:
+
+- AC‑driven proposals,  
+- DC‑validated transitions,  
+- and reinforced stabilization.
+
+This execution model is substrate‑agnostic and suitable for:
+
+- simulation,  
+- theoretical analysis,  
+- and future physical implementations.
+
+---
+
+**End of Document**
+
+

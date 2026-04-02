@@ -1,4 +1,4 @@
-[![DUI](https://doi.svg)](10.5281/zenodo.19243313)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19243313.svg)](https://doi.org/10.5281/zenodo.19243313)
 
 # The Sovereignty Engine vC5.3
 

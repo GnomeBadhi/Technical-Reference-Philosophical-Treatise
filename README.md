@@ -1,6 +1,7 @@
-[![DOI](10.5281/zenodo.19243313](https://doi.org)
+[![DUI](10.5281/zenodo.19243313)https://doi.svg)
 
 # The Sovereignty Engine vC5.3
+
 ## A Complete Ontological Architecture for Cybernetic Being
 
 "What is the simplest architecture capable of sustaining autonomous, self-correcting, self-preserving behavior?" — Gnome Badhi

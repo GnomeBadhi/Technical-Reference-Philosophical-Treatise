@@ -1,6 +1,7 @@
 [![DOI](https://zenodo.org)](https://doi.org)
 
 
+
 # The Sovereignty Engine vC5.3
 ## A Complete Ontological Architecture for Cybernetic Being
 

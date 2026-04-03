@@ -4,7 +4,5 @@ message: "If you use this work, please cite it as below."
 authors:
   - name: "GnomeBadhi"
 title: "Technical-Reference-Philosophical-Treatise"
-identifiers:
-  - type: doi
-    value: 10.5281/zenodo.19243313
+id
 url: "https://github.com/GnomeBadhi/Technical-Reference-Philosophical-Treatise"

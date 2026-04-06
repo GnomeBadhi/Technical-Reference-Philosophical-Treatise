@@ -3,6 +3,8 @@ const chatInput    = document.getElementById("chat-input");
 const chatMessages = document.getElementById("chat-messages");
 const stateBars    = document.getElementById("state-bars");
 const opLog        = document.getElementById("op-log");
+const micBtn       = document.getElementById("mic-btn");
+const voiceToggle  = document.getElementById("voice-toggle");
 
 // ── Helpers ───────────────────────────────────────────────────────────
 function pct(v)   { return (v * 100).toFixed(1) + "%"; }
@@ -117,12 +119,10 @@ function addToOpLog(opName) {
     while (opLog.children.length > 20) opLog.removeChild(opLog.lastChild);
 }
 
-// ── Input handler ─────────────────────────────────────────────────────
-chatInput.addEventListener("keydown", e => {
-    if (e.key !== "Enter") return;
-    const text = chatInput.value.trim();
-    chatInput.value = "";
+// ── Shared message submit ─────────────────────────────────────────────
+function submitMessage(text) {
     if (!text) return;
+    chatInput.value = "";
 
     appendMessage("user", text);
 
@@ -139,7 +139,7 @@ chatInput.addEventListener("keydown", e => {
             '  "stabilize"           — harmonizes all primitives',
             '  "status"              — full system readout',
         ].join("\n");
-        setTimeout(() => appendMessage("sova", help), 400);
+        setTimeout(() => { appendMessage("sova", help); speakText(help); }, 400);
         return;
     }
 
@@ -151,7 +151,8 @@ chatInput.addEventListener("keydown", e => {
             lines.push(`  ${k}  ${bar}  ${(v * 100).toFixed(1)}%  ${PRIMITIVE_NAMES[k]}`);
         });
         lines.push(`\n  Total operations: ${kernelState.history.length}`);
-        setTimeout(() => appendMessage("sova", lines.join("\n")), 500);
+        const statusText = lines.join("\n");
+        setTimeout(() => { appendMessage("sova", statusText); speakText(statusText); }, 500);
         return;
     }
 
@@ -163,11 +164,105 @@ chatInput.addEventListener("keydown", e => {
         const result   = processIntent(text);
         const response = pickResponse(result.intent.type, kernelState);
         appendMessage("sova", response);
+        speakText(response);
         renderStateBars();
         draw2D(kernelState);
         addToOpLog(result.intent.type);
     }, delay);
+}
+
+// ── Input handler ─────────────────────────────────────────────────────
+chatInput.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    submitMessage(chatInput.value.trim());
 });
+
+// ── Voice Output (SpeechSynthesis) ────────────────────────────────────
+let voiceEnabled = true;
+
+voiceToggle.addEventListener("click", () => {
+    voiceEnabled = !voiceEnabled;
+    voiceToggle.classList.toggle("active", voiceEnabled);
+    voiceToggle.title = voiceEnabled ? "SOVA voice ON — click to mute" : "SOVA voice OFF — click to enable";
+    if (!voiceEnabled) window.speechSynthesis.cancel();
+});
+
+function speakText(text) {
+    if (!voiceEnabled || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const plain = text.replace(/[◉◈●◤◈─⚠█░»]/g, "").trim();
+    const utt   = new SpeechSynthesisUtterance(plain);
+    utt.rate    = 0.92;
+    utt.pitch   = 0.85;
+    utt.volume  = 0.9;
+    // Prefer a low, neutral voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v =>
+        /google uk english male|daniel|karen|moira|fiona|reed|fred/i.test(v.name)
+    );
+    if (preferred) utt.voice = preferred;
+    window.speechSynthesis.speak(utt);
+}
+
+// ── Voice Input (SpeechRecognition) ───────────────────────────────────
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isListening = false;
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous      = false;
+    recognition.interimResults  = true;
+    recognition.lang            = "en-US";
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+        isListening = true;
+        micBtn.classList.add("listening");
+        chatInput.placeholder = "Listening…";
+    };
+
+    recognition.onresult = e => {
+        let interim = "", final = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+            const t = e.results[i][0].transcript;
+            if (e.results[i].isFinal) final += t;
+            else interim += t;
+        }
+        chatInput.value = final || interim;
+        if (final) {
+            recognition.stop();
+            submitMessage(final.trim());
+        }
+    };
+
+    recognition.onerror = e => {
+        if (e.error !== "no-speech" && e.error !== "aborted") {
+            appendMessage("sova", `Voice input error: ${e.error}. Try typing instead.`);
+        }
+    };
+
+    recognition.onend = () => {
+        isListening = false;
+        micBtn.classList.remove("listening");
+        chatInput.placeholder = "Speak to SOVA…";
+        if (!chatInput.value) chatInput.value = "";
+    };
+
+    micBtn.addEventListener("click", () => {
+        if (isListening) {
+            recognition.stop();
+        } else {
+            window.speechSynthesis.cancel();
+            chatInput.value = "";
+            recognition.start();
+        }
+    });
+} else {
+    micBtn.title   = "Voice input not supported in this browser";
+    micBtn.style.opacity = "0.3";
+    micBtn.style.cursor  = "not-allowed";
+}
 
 // ── Boot ──────────────────────────────────────────────────────────────
 renderStateBars();
@@ -177,7 +272,8 @@ setTimeout(() => {
     appendMessage("sova",
         "Sovereign Kernel vC5.3 online. All six primitives initialized.\n" +
         "SOVA navigation interface active. Orbital map is live.\n\n" +
-        'Say "help" for a list of directives, or speak naturally.'
+        'Say "help" for a list of directives, or speak naturally.\n' +
+        'Use ◉ to speak and ◈ to toggle my voice.'
     );
 }, 300);
 

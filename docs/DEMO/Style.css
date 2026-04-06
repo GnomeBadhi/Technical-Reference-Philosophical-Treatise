@@ -273,6 +273,40 @@ canvas {
 
 #chat-input::placeholder { color: #163a20; }
 
+/* ── Voice / Mic Buttons ─────────────────────────────────────── */
+.icon-btn {
+    background: transparent;
+    border: 1px solid #0d2030;
+    color: #1a5a7a;
+    font-size: 15px;
+    line-height: 1;
+    padding: 4px 7px;
+    cursor: pointer;
+    border-radius: 2px;
+    font-family: 'Courier New', monospace;
+    flex-shrink: 0;
+    transition: color 0.2s, border-color 0.2s;
+    user-select: none;
+}
+
+.icon-btn:hover { color: #4aaaca; border-color: #1a4a6a; }
+
+.icon-btn.active {
+    color: #2aaa6a;
+    border-color: #1a6a3a;
+}
+
+#mic-btn.listening {
+    color: #ff6060;
+    border-color: #aa2020;
+    animation: mic-pulse 1s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 60, 60, 0); }
+    50%       { box-shadow: 0 0 0 5px rgba(255, 60, 60, 0.18); }
+}
+
 /* ── Animations ──────────────────────────────────────────────── */
 @keyframes blink {
     0%, 100% { opacity: 1; }

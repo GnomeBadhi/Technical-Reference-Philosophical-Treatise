@@ -4,16 +4,38 @@
 // Separation of concerns:
 //   analyzeIntent()  lives in LLM.js  (input boundary)
 //   processIntent()  lives in Kernel.js (pure engine)
-//   draw2D / draw3D  live in Visualizer.js
+//   draw2D / draw3D / drawEmotions  live in Visualizer.js
 // ============================================================
 
 const inputEl   = document.getElementById("terminal-input");
 const outputEl  = document.getElementById("terminal-output");
 const stateEl   = document.getElementById("state-json");
 
+// Current emotion state — updated after each message
+let currentEmotions = (typeof ZERO_EMOTIONS !== "undefined")
+    ? { ...ZERO_EMOTIONS }
+    : { joy: 0, trust: 0, fear: 0, surprise: 0, sadness: 0, disgust: 0, anger: 0, anticipation: 0 };
+
 function print(text) {
     outputEl.textContent += text + "\n";
     outputEl.scrollTop = outputEl.scrollHeight;
+}
+
+// ------------------------------------------------------------------
+// Domain preset selector
+// ------------------------------------------------------------------
+const domainSelector = document.getElementById("domain-selector");
+if (domainSelector) {
+    domainSelector.addEventListener("change", () => {
+        const key = domainSelector.value;
+        setDomain(key);
+        stateEl.textContent = JSON.stringify(kernelState, null, 2);
+        draw2D(kernelState);
+        draw3D(kernelState);
+        const label = (typeof DOMAIN_PRESETS !== "undefined" && DOMAIN_PRESETS[key])
+            ? DOMAIN_PRESETS[key].label : key;
+        print("[domain] switched to: " + label);
+    });
 }
 
 // ------------------------------------------------------------------
@@ -30,8 +52,8 @@ inputEl.addEventListener("keydown", async event => {
     print("> " + text);
     print("  [boundary: analysing…]");
 
-    // ── 1. Boundary layer: raw text → structured intent
-    //       The kernel never sees the LLM reasoning or raw text.
+    // ── 1. Boundary layer: raw text → structured intent + emotions
+    //       The kernel never sees the LLM reasoning, raw text, or emotions.
     let intent;
     try {
         intent = await analyzeIntent(text, kernelState);
@@ -63,7 +85,13 @@ inputEl.addEventListener("keydown", async event => {
         print("  Δ " + JSON.stringify(result.delta));
     }
 
-    // ── 3. Refresh displays
+    // ── 3. Update emotions display
+    if (intent.emotions) {
+        currentEmotions = intent.emotions;
+        drawEmotions(currentEmotions);
+    }
+
+    // ── 4. Refresh state displays
     stateEl.textContent = JSON.stringify(kernelState, null, 2);
     draw2D(kernelState);
     startAnimation(kernelState);
@@ -90,4 +118,5 @@ if (configToggle && configBody) {
 // ------------------------------------------------------------------
 draw2D(kernelState);
 draw3D(kernelState);
+drawEmotions(currentEmotions);
 stateEl.textContent = JSON.stringify(kernelState, null, 2);

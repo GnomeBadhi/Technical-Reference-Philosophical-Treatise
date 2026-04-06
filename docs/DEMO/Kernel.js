@@ -2,12 +2,101 @@
 // Sovereignty Engine — Kernel
 // Architecture:  E = (St, Xt, Bt, U, R)
 // Invariant:     t → t+1  (irreversible time)
+//
+// STOE Kernel Tuple:  K(x) = (I, B, S, σ, P, L)
+//   I  — identity       (invariant, always 1.0)
+//   B  — boundary       → boundary_strength
+//   S  — state/clarity  → clarity
+//   σ  — sovereignty    → derived: clarity × boundary_strength × (1 − entropy)
+//   P  — purity         → derived: 1 − entropy
+//   L  — lifecycle pos  → t  (monotonically increasing)
 // ============================================================
+
+// -----------------------------
+// Domain Presets — tune initial state and regulation targets
+// Aligned with DomainReference.md domains
+// -----------------------------
+const DOMAIN_PRESETS = {
+    DEFAULT: {
+        label: "Default",
+        initial: { clarity: 0.80, boundary_strength: 0.75, entropy: 0.12, stability: 0.88 },
+        targets: { clarity: 0.90, entropyMax: 0.20, boundary: 0.75 }
+    },
+    PHYSICS: {
+        label: "Physics",
+        initial: { clarity: 0.92, boundary_strength: 0.90, entropy: 0.04, stability: 0.95 },
+        targets: { clarity: 0.95, entropyMax: 0.05, boundary: 0.90 }
+    },
+    BIOLOGY: {
+        label: "Biology",
+        initial: { clarity: 0.70, boundary_strength: 0.62, entropy: 0.28, stability: 0.72 },
+        targets: { clarity: 0.80, entropyMax: 0.30, boundary: 0.65 }
+    },
+    COGNITION: {
+        label: "Cognition",
+        initial: { clarity: 0.85, boundary_strength: 0.58, entropy: 0.18, stability: 0.82 },
+        targets: { clarity: 0.90, entropyMax: 0.22, boundary: 0.60 }
+    },
+    CYBERNETICS: {
+        label: "Cybernetics",
+        initial: { clarity: 0.88, boundary_strength: 0.86, entropy: 0.07, stability: 0.93 },
+        targets: { clarity: 0.92, entropyMax: 0.10, boundary: 0.85 }
+    },
+    AI_ROBOTICS: {
+        label: "AI / Robotics",
+        initial: { clarity: 0.90, boundary_strength: 0.82, entropy: 0.09, stability: 0.91 },
+        targets: { clarity: 0.93, entropyMax: 0.10, boundary: 0.82 }
+    },
+    ECONOMICS: {
+        label: "Economics",
+        initial: { clarity: 0.62, boundary_strength: 0.52, entropy: 0.38, stability: 0.58 },
+        targets: { clarity: 0.72, entropyMax: 0.40, boundary: 0.55 }
+    },
+    ECOLOGY: {
+        label: "Ecology",
+        initial: { clarity: 0.68, boundary_strength: 0.50, entropy: 0.32, stability: 0.70 },
+        targets: { clarity: 0.75, entropyMax: 0.35, boundary: 0.52 }
+    },
+    INFORMATION: {
+        label: "Information Systems",
+        initial: { clarity: 0.93, boundary_strength: 0.88, entropy: 0.05, stability: 0.94 },
+        targets: { clarity: 0.96, entropyMax: 0.08, boundary: 0.88 }
+    }
+};
+
+let currentDomainPreset = DOMAIN_PRESETS.DEFAULT;
+
+// Apply a domain preset — resets state to domain initial conditions
+// preserving t and history (lifecycle is irreversible)
+function setDomain(key) {
+    const preset = DOMAIN_PRESETS[key];
+    if (!preset) return;
+    currentDomainPreset = preset;
+    Object.assign(kernelState, preset.initial);
+    kernelState.domain    = preset.label;
+    kernelState.viability = checkViability(kernelState);
+}
+
+// -----------------------------
+// STOE Derived Primitives
+// Compute the theoretical K(x) components from kernel state.
+// -----------------------------
+function getSTOEPrimitives(state) {
+    return {
+        I: 1.0,                                                                         // identity — invariant
+        B: state.boundary_strength,                                                     // boundary
+        S: state.clarity,                                                               // state quality
+        sigma: clamp(state.clarity * state.boundary_strength * (1 - state.entropy), 0, 1), // sovereignty
+        P: clamp(1 - state.entropy, 0, 1),                                              // purity
+        L: state.t                                                                      // lifecycle (integer)
+    };
+}
 
 // -----------------------------
 // Initial State  St
 // Fields:
 //   t                — discrete temporal index
+//   domain           — active domain preset label
 //   clarity          — coherence of internal representation  [0,1]
 //   boundary_strength— constraint enforcement intensity      [0,1]
 //   entropy          — internal disorder / noise             [0,1]
@@ -17,6 +106,7 @@
 // -----------------------------
 const kernelState = {
     t: 0,
+    domain:            "Default",
     clarity:           0.80,
     boundary_strength: 0.75,
     entropy:           0.12,
@@ -131,11 +221,12 @@ const operators = {
 // At = R(St, Et)
 // -----------------------------
 function regulationExtract(state, input) {
-    // Sense: compute deviation from target clarity (0.9) and max entropy (0.2)
+    // Sense: compute deviation from domain-specific targets
+    const tgt = currentDomainPreset.targets;
     return {
-        clarityDeviation: 0.90 - state.clarity,
-        entropyExcess:    Math.max(0, state.entropy - 0.20),
-        boundaryGap:      0.75 - state.boundary_strength
+        clarityDeviation: tgt.clarity    - state.clarity,
+        entropyExcess:    Math.max(0, state.entropy - tgt.entropyMax),
+        boundaryGap:      tgt.boundary   - state.boundary_strength
     };
 }
 

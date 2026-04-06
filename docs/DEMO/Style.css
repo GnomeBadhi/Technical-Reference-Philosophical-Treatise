@@ -8,7 +8,7 @@ body {
 #layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 45vh 55vh;
+    grid-template-rows: 42vh 33vh 25vh;
     height: 100vh;
 }
 
@@ -63,6 +63,37 @@ body {
     font-size: 11px;
     line-height: 1.6;
     margin: 0;
+}
+
+/* Domain selector */
+#domain-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+#domain-row label {
+    font-size: 10px;
+    color: #666;
+    white-space: nowrap;
+}
+
+#domain-selector {
+    flex: 1;
+    background: #111;
+    border: 1px solid #333;
+    color: #b0b0b0;
+    font-family: monospace;
+    font-size: 11px;
+    padding: 3px 5px;
+    cursor: pointer;
+}
+
+#domain-selector:focus {
+    outline: 1px solid #555;
 }
 
 /* LLM config */
@@ -133,5 +164,27 @@ canvas {
     display: block;
     width: 100%;
     height: calc(100% - 28px);
+    background: #111;
+}
+
+/* Emotions panel — full-width third row */
+#emotions-panel {
+    grid-column: 1 / -1;
+    border: 1px solid #333;
+    padding: 8px 10px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+#emotions-panel h2 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    color: #888;
+}
+
+#canvas-emotions {
+    display: block;
+    width: 100%;
+    height: calc(100% - 26px);
     background: #111;
 }

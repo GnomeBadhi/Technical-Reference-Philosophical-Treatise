@@ -17,6 +17,22 @@
 
         <!-- Kernel State Panel -->
         <div id="state-panel">
+            <!-- Domain preset selector -->
+            <div id="domain-row">
+                <label for="domain-selector">Domain Preset</label>
+                <select id="domain-selector">
+                    <option value="DEFAULT">Default</option>
+                    <option value="PHYSICS">Physics</option>
+                    <option value="BIOLOGY">Biology</option>
+                    <option value="COGNITION">Cognition</option>
+                    <option value="CYBERNETICS">Cybernetics</option>
+                    <option value="AI_ROBOTICS">AI / Robotics</option>
+                    <option value="ECONOMICS">Economics</option>
+                    <option value="ECOLOGY">Ecology</option>
+                    <option value="INFORMATION">Information Systems</option>
+                </select>
+            </div>
+
             <h2>Kernel State  <span id="viability-badge"></span></h2>
             <pre id="state-json"></pre>
 
@@ -38,9 +54,9 @@
             </div>
         </div>
 
-        <!-- 2D Canvas Visualization -->
+        <!-- 2D Canvas Visualization — STOE Primitives + Sparklines -->
         <div id="canvas-panel">
-            <h2>State Space  <span class="dim">2D</span></h2>
+            <h2>State Primitives  <span class="dim">K(x) = (I, B, S, σ, P, L)</span></h2>
             <canvas id="canvas2d"></canvas>
         </div>
 
@@ -48,6 +64,12 @@
         <div id="webgl-panel">
             <h2>Kernel Trajectory  <span class="dim">3D</span></h2>
             <canvas id="webgl-canvas"></canvas>
+        </div>
+
+        <!-- Emotions Panel — full-width bottom row, always visible -->
+        <div id="emotions-panel">
+            <h2>Emotional State  <span class="dim">live · Plutchik basis</span></h2>
+            <canvas id="canvas-emotions"></canvas>
         </div>
 
     </div>

@@ -25,25 +25,16 @@ function draw2D(state) {
 const glCanvas = document.getElementById("webgl-canvas");
 const gl = glCanvas.getContext("webgl");
 
+// angle drives the orbital rotation; only active after kernel initiation
 let angle = 0;
 
-function draw3D(state) {
-    const w = glCanvas.width = glCanvas.clientWidth;
-    const h = glCanvas.height = glCanvas.clientHeight;
+let glProgram = null;
+let glPosLoc = null;
+let glBuffer = null;
 
-    gl.viewport(0, 0, w, h);
-    gl.clearColor(0.05, 0.05, 0.05, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    // Simple animated dot representing kernel state
-    const x = state.clarity * 2 - 1;
-    const y = state.entropy * -2 + 1;
-
-    const vertices = new Float32Array([x, y, 0]);
-
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+// Compile shaders and link program once
+function initWebGL() {
+    if (!gl) return;
 
     const vs = `
         attribute vec3 pos;
@@ -67,15 +58,59 @@ function draw3D(state) {
     gl.shaderSource(fshader, fs);
     gl.compileShader(fshader);
 
-    const program = gl.createProgram();
-    gl.attachShader(program, vshader);
-    gl.attachShader(program, fshader);
-    gl.linkProgram(program);
-    gl.useProgram(program);
+    glProgram = gl.createProgram();
+    gl.attachShader(glProgram, vshader);
+    gl.attachShader(glProgram, fshader);
+    gl.linkProgram(glProgram);
+    gl.useProgram(glProgram);
 
-    const posLoc = gl.getAttribLocation(program, "pos");
-    gl.enableVertexAttribArray(posLoc);
-    gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+    glPosLoc = gl.getAttribLocation(glProgram, "pos");
+    glBuffer = gl.createBuffer();
+}
+
+function draw3D(state) {
+    if (!gl || !glProgram) return;
+
+    const w = glCanvas.width = glCanvas.clientWidth;
+    const h = glCanvas.height = glCanvas.clientHeight;
+
+    gl.viewport(0, 0, w, h);
+    gl.clearColor(0.05, 0.05, 0.05, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Orbit the kernel point using angle; radius and vertical offset driven by state
+    const r = state.clarity * 0.8;
+    const x = Math.cos(angle) * r;
+    const y = Math.sin(angle) * r - state.entropy;
+
+    const vertices = new Float32Array([x, y, 0]);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+    gl.useProgram(glProgram);
+    gl.enableVertexAttribArray(glPosLoc);
+    gl.vertexAttribPointer(glPosLoc, 3, gl.FLOAT, false, 0, 0);
 
     gl.drawArrays(gl.POINTS, 0, 1);
 }
+
+// Start the continuous rotation loop; angle only advances after initiation
+let animationStarted = false;
+let liveState = null;
+
+function startAnimation(state) {
+    liveState = state;
+    if (animationStarted) return;
+    animationStarted = true;
+
+    function loop() {
+        angle += 0.01;
+        draw3D(liveState);
+        requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+}
+
+// One-time WebGL setup on load
+initWebGL();

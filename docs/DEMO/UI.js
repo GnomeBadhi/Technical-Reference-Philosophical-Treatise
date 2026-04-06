@@ -21,11 +21,14 @@ input.addEventListener("keydown", e => {
         statePanel.textContent = JSON.stringify(kernelState, null, 2);
 
         draw2D(kernelState);
-        draw3D(kernelState);
+
+        // Start the 3D animation loop on first kernel initiation;
+        // angle only begins advancing from this point onward
+        startAnimation(kernelState);
     }
 });
 
-// Initial draw
+// Initial static draw (no animation yet)
 draw2D(kernelState);
 draw3D(kernelState);
 statePanel.textContent = JSON.stringify(kernelState, null, 2);

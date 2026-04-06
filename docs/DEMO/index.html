@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sovereign Kernel Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="layout">
+
+        <!-- Terminal -->
+        <div id="terminal">
+            <div id="terminal-output"></div>
+            <input id="terminal-input" type="text" placeholder="Type here…" autofocus>
+        </div>
+
+        <!-- Kernel State Panel -->
+        <div id="state-panel">
+            <h2>Kernel State</h2>
+            <pre id="state-json"></pre>
+        </div>
+
+        <!-- 2D Canvas Visualization -->
+        <div id="canvas-panel">
+            <h2>2D Visualization</h2>
+            <canvas id="canvas2d"></canvas>
+        </div>
+
+        <!-- 3D WebGL Visualization -->
+        <div id="webgl-panel">
+            <h2>3D Kernel Space</h2>
+            <canvas id="webgl-canvas"></canvas>
+        </div>
+
+    </div>
+
+    <script src="kernel.js"></script>
+    <script src="visualizer.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>

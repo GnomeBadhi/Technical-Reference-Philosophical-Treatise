@@ -6,7 +6,7 @@ This is a fully client-side demonstration of the Sovereign Kernel.
 
 1. Clone the repo  
 2. Enable GitHub Pages (Settings → Pages → Source: `/docs`)  
-3. Visit:https://github.com/GnomeBadhi/Technical-Reference-Philosophical-Treatise/new/main/docs/DEMO
+3. Visit: https://gnomebadhi.github.io/Technical-Reference-Philosophical-Treatise/docs/DEMO/
 
 4. The demo runs entirely in the browser using:
 - HTML5

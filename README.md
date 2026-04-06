@@ -27,9 +27,14 @@ As the author, Gnome Badhi retains exclusive rights to authorize any adaptations
 ## 🛠️ Repository Structure
 
 - **LICENSE**: Full legal text of the CC BY-NC-ND 4.0 license.
-- **docs/**: Complete documentation suite including technical references, diagrams, and disclosures.
-- **docs/INDEX.md**: Navigation guide to all materials (start here).
-- **src/**: (Planned) The line-by-line code concordance as described in Appendix A.
+- **[docs/INDEX.md](docs/INDEX.md)**: Navigation guide to all materials — **start here**.
+- **docs/diagrams/**: All architectural diagrams, visualisations, and the main PDF reference.
+- **docs/generated/**: AI-generated alternative visualisations.
+- **docs/DEMO/**: Fully client-side interactive demo of the Sovereign Kernel.
+- **docs/Disclosure/**: Seven sequential in-depth disclosure documents (read in order).
+- **docs/INVARIANT_DISCLOSURE/**: Detailed formal specifications for all kernel invariants and operators.
+- **docs/SKL/**: Sovereign Knowledge Ledger — protocol, consensus, and network specs.
+- **docs/DualK/**: Dual-Kernel execution model documentation.
 
 ## 📬 Contact for Adaptations
 
@@ -43,6 +48,6 @@ Copyright © 2026 Gnome Badhi. All rights reserved.
 
 Explore the documentation index [INDEX.md](docs/INDEX.md) for multiple reading paths available to enhance your understanding of the project.
 
-![Theory → Hardware Bridge](docs/image_64cfa973.png)
+![Theory → Hardware Bridge](docs/diagrams/image_64cfa973.png)
 
 *This image shows how the six kernel operators map directly onto physical hardware, mapping Boundary, Locality, Identity, Coupling, Propagation, and Domain to their concrete electrical expressions in the circuit.*

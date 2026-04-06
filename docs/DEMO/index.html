@@ -12,30 +12,49 @@
         <!-- Terminal -->
         <div id="terminal">
             <div id="terminal-output"></div>
-            <input id="terminal-input" type="text" placeholder="Type here…" autofocus>
+            <input id="terminal-input" type="text" placeholder="Describe an intent… (e.g. stabilise, tighten boundary, suppress entropy)" autofocus>
         </div>
 
         <!-- Kernel State Panel -->
         <div id="state-panel">
-            <h2>Kernel State</h2>
+            <h2>Kernel State  <span id="viability-badge"></span></h2>
             <pre id="state-json"></pre>
+
+            <!-- LLM config — collapsed by default -->
+            <div id="llm-config">
+                <button id="config-toggle">▼ LLM Config</button>
+                <div id="config-body" style="display:none">
+                    <label>API Key
+                        <input id="llm-key" type="password" placeholder="sk-…" autocomplete="off">
+                    </label>
+                    <label>Endpoint
+                        <input id="llm-endpoint" type="text" value="https://api.openai.com/v1/chat/completions">
+                    </label>
+                    <label>Model
+                        <input id="llm-model" type="text" value="gpt-4o-mini">
+                    </label>
+                    <p class="hint">Leave API Key blank to use keyword heuristics (no network calls).</p>
+                </div>
+            </div>
         </div>
 
         <!-- 2D Canvas Visualization -->
         <div id="canvas-panel">
-            <h2>2D Visualization</h2>
+            <h2>State Space  <span class="dim">2D</span></h2>
             <canvas id="canvas2d"></canvas>
         </div>
 
         <!-- 3D WebGL Visualization -->
         <div id="webgl-panel">
-            <h2>3D Kernel Space</h2>
+            <h2>Kernel Trajectory  <span class="dim">3D</span></h2>
             <canvas id="webgl-canvas"></canvas>
         </div>
 
     </div>
 
+    <!-- Load order: Kernel (pure engine) → LLM (input boundary) → Visualizer → UI (wiring) -->
     <script src="Kernel.js"></script>
+    <script src="LLM.js"></script>
     <script src="Visualizer.js"></script>
     <script src="UI.js"></script>
 </body>

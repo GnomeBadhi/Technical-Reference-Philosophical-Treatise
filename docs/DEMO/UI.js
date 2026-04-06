@@ -1,34 +1,93 @@
-const input = document.getElementById("terminal-input");
-const output = document.getElementById("terminal-output");
-const statePanel = document.getElementById("state-json");
+// ============================================================
+// UI — wires LLM boundary layer → Kernel → Visualiser
+//
+// Separation of concerns:
+//   analyzeIntent()  lives in LLM.js  (input boundary)
+//   processIntent()  lives in Kernel.js (pure engine)
+//   draw2D / draw3D  live in Visualizer.js
+// ============================================================
+
+const inputEl   = document.getElementById("terminal-input");
+const outputEl  = document.getElementById("terminal-output");
+const stateEl   = document.getElementById("state-json");
 
 function print(text) {
-    output.textContent += text + "\n";
-    output.scrollTop = output.scrollHeight;
+    outputEl.textContent += text + "\n";
+    outputEl.scrollTop = outputEl.scrollHeight;
 }
 
-input.addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-        const text = input.value.trim();
-        input.value = "";
-        print("> " + text);
+// ------------------------------------------------------------------
+// Main input handler — async because LLM call may be awaited
+// ------------------------------------------------------------------
+inputEl.addEventListener("keydown", async event => {
+    if (event.key !== "Enter") return;
 
-        const intent = parseIntent(text);
-        const result = processIntent(intent);
+    const text = inputEl.value.trim();
+    if (!text) return;
+    inputEl.value = "";
+    inputEl.disabled = true;
 
-        print(JSON.stringify(result, null, 2));
+    print("> " + text);
+    print("  [boundary: analysing…]");
 
-        statePanel.textContent = JSON.stringify(kernelState, null, 2);
-
-        draw2D(kernelState);
-
-        // Start the 3D animation loop on first kernel initiation;
-        // angle only begins advancing from this point onward
-        startAnimation(kernelState);
+    // ── 1. Boundary layer: raw text → structured intent
+    //       The kernel never sees the LLM reasoning or raw text.
+    let intent;
+    try {
+        intent = await analyzeIntent(text, kernelState);
+    } catch (err) {
+        print("  [boundary error: " + err.message + "]");
+        inputEl.disabled = false;
+        return;
     }
+
+    // Show boundary reasoning in the terminal (UI-only; never passed to kernel)
+    print("  [boundary → " + intent.source.toUpperCase() + "] "
+        + intent.operator + " ×" + intent.magnitude.toFixed(2)
+        + " — " + intent.reasoning);
+
+    // ── 2. Pure kernel: structured intent → state transition
+    //       Only operator + magnitude reach the engine.
+    const result = processIntent({
+        operator:  intent.operator,
+        magnitude: intent.magnitude
+    });
+
+    if (result.rejected) {
+        print("  [kernel] input rejected by boundary: " + result.reason);
+    } else {
+        print("  [kernel t=" + result.t + "] "
+            + result.operator
+            + " | viable=" + result.viability
+            + " | C(S)=" + result.constraintC);
+        print("  Δ " + JSON.stringify(result.delta));
+    }
+
+    // ── 3. Refresh displays
+    stateEl.textContent = JSON.stringify(kernelState, null, 2);
+    draw2D(kernelState);
+    startAnimation(kernelState);
+
+    inputEl.disabled = false;
+    inputEl.focus();
 });
 
-// Initial static draw (no animation yet)
+// ------------------------------------------------------------------
+// Collapsible LLM config panel toggle
+// ------------------------------------------------------------------
+const configToggle = document.getElementById("config-toggle");
+const configBody   = document.getElementById("config-body");
+if (configToggle && configBody) {
+    configToggle.addEventListener("click", () => {
+        const hidden = configBody.style.display === "none";
+        configBody.style.display = hidden ? "block" : "none";
+        configToggle.textContent  = hidden ? "▲ LLM Config" : "▼ LLM Config";
+    });
+}
+
+// ------------------------------------------------------------------
+// Initial static render (no animation until first kernel call)
+// ------------------------------------------------------------------
 draw2D(kernelState);
 draw3D(kernelState);
-statePanel.textContent = JSON.stringify(kernelState, null, 2);
+stateEl.textContent = JSON.stringify(kernelState, null, 2);

@@ -14,6 +14,11 @@
 
 const EMOTION_KEYS = ["joy", "trust", "fear", "surprise", "sadness", "disgust", "anger", "anticipation"];
 
+// Each keyword hit adds EMOTION_SCORE_MULTIPLIER; capped at 1.0.
+// A single strong keyword should register ~0.45 (noticeable but not maximum),
+// two keywords push to ~0.9, and three or more saturate at 1.0.
+const EMOTION_SCORE_MULTIPLIER = 0.45;
+
 const ZERO_EMOTIONS = Object.fromEntries(EMOTION_KEYS.map(k => [k, 0.0]));
 
 function buildSystemPrompt(domainLabel) {
@@ -166,7 +171,7 @@ function emotionHeuristic(text) {
     function score(patterns) {
         let hits = 0;
         patterns.forEach(p => { if (new RegExp("\\b" + p + "\\b").test(t)) hits++; });
-        return Math.min(hits * 0.45, 1.0);
+        return Math.min(hits * EMOTION_SCORE_MULTIPLIER, 1.0);
     }
     return {
         joy:          score(["happy", "joy", "excited", "great", "love", "wonderful", "amazing", "delighted", "fantastic", "pleased"]),

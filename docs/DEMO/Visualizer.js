@@ -97,10 +97,8 @@ function draw2D(state) {
             key => stoe[key] !== undefined ? stoe[key] : 0,
             key => hist.map(h => {
                 if (!h.state_after) return 0;
-                const s = h.state_after;
-                if (key === "sigma") return Math.max(0, Math.min(1, (s.clarity || 0) * (s.boundary_strength || 0) * (1 - (s.entropy || 0))));
-                if (key === "P")     return Math.max(0, Math.min(1, 1 - (s.entropy || 0)));
-                return 0;
+                const derived = getSTOEPrimitives(h.state_after);
+                return derived[key] !== undefined ? derived[key] : 0;
             })
         );
     });

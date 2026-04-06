@@ -1,0 +1,44 @@
+body {
+    margin: 0;
+    background: #0e0e0e;
+    color: #e0e0e0;
+    font-family: monospace;
+}
+
+#layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 45vh 55vh;
+    height: 100vh;
+}
+
+#terminal, #state-panel, #canvas-panel, #webgl-panel {
+    border: 1px solid #333;
+    padding: 10px;
+    overflow: hidden;
+}
+
+#terminal {
+    display: flex;
+    flex-direction: column;
+}
+
+#terminal-output {
+    flex: 1;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+#terminal-input {
+    background: #111;
+    color: #0f0;
+    border: none;
+    padding: 8px;
+    font-size: 16px;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    background: #111;
+}

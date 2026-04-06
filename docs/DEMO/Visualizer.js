@@ -3,8 +3,8 @@ const canvas2d = document.getElementById("canvas2d");
 const ctx = canvas2d.getContext("2d");
 
 function draw2D(state) {
-    const w = canvas2d.width  = canvas2d.clientWidth  || 400;
-    const h = canvas2d.height = canvas2d.clientHeight || 300;
+    const w = canvas2d.width  = canvas2d.offsetWidth  || 240;
+    const h = canvas2d.height = canvas2d.offsetHeight || 210;
     const cx = w / 2, cy = h / 2;
     const r  = Math.min(w, h) * 0.36;
     const n  = PRIMITIVES.length;
@@ -134,8 +134,8 @@ function initGL() {
 function draw3D(state) {
     if (!gl || !glProgram) return;
 
-    const w = glCanvas.width  = glCanvas.clientWidth  || 400;
-    const h = glCanvas.height = glCanvas.clientHeight || 300;
+    const w = glCanvas.width  = glCanvas.offsetWidth  || 240;
+    const h = glCanvas.height = glCanvas.offsetHeight || 195;
     gl.viewport(0, 0, w, h);
     gl.clearColor(0.04, 0.04, 0.06, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);

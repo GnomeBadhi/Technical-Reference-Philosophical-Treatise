@@ -2,36 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sovereign Kernel Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sovereign Kernel — Bridge Interface</title>
     <link rel="stylesheet" href="Style.css">
 </head>
 
 <body>
+    <div id="header">
+        <div class="hdr-left">◈ S.S. SOVEREIGN &nbsp;·&nbsp; KERNEL vC5.3</div>
+        <div class="hdr-center">BRIDGE INTERFACE</div>
+        <div class="hdr-right"><span class="blink">●</span>&nbsp;OPERATIONAL</div>
+    </div>
+
     <div id="layout">
 
-        <!-- Terminal -->
-        <div id="terminal">
-            <div id="terminal-output"></div>
-            <input id="terminal-input" type="text" placeholder="Type here…" autofocus>
-        </div>
-
-        <!-- Kernel State Panel -->
-        <div id="state-panel">
-            <h2>Kernel State</h2>
-            <pre id="state-json"></pre>
-        </div>
-
-        <!-- 2D Canvas Visualization -->
-        <div id="canvas-panel">
-            <h2>2D Visualization</h2>
+        <!-- Left Navigation Panel -->
+        <nav id="nav-left" class="nav-panel">
+            <div class="panel-label">◤ PRIMITIVE SCAN</div>
             <canvas id="canvas2d"></canvas>
-        </div>
+            <div class="panel-label" style="margin-top:10px">◤ SYSTEM STATUS</div>
+            <div id="state-bars"></div>
+        </nav>
 
-        <!-- 3D WebGL Visualization -->
-        <div id="webgl-panel">
-            <h2>3D Kernel Space</h2>
+        <!-- Center: SOVA AI Chat -->
+        <main id="chat-panel">
+            <div id="chat-messages"></div>
+            <div id="chat-input-row">
+                <span class="prompt-glyph">›</span>
+                <input id="chat-input" type="text" placeholder="Speak to SOVA…" autocomplete="off" spellcheck="false" autofocus>
+            </div>
+        </main>
+
+        <!-- Right Navigation Panel -->
+        <nav id="nav-right" class="nav-panel">
+            <div class="panel-label">◤ ORBITAL MAP</div>
             <canvas id="webgl-canvas"></canvas>
-        </div>
+            <div class="panel-label" style="margin-top:10px">◤ OPERATOR LOG</div>
+            <div id="op-log"></div>
+        </nav>
 
     </div>
 

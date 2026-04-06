@@ -18,7 +18,7 @@
 **Read after**: Overview materials
 **Cross-references**: Referenced in all diagrams and disclosures
 
-### StructuredTheoryOfEverything.pdf (4.1 MB)
+### StructuredTheoryOfEverything.md (46 KB)
 **Purpose**: Foundational theory underpinning the Sovereignty Engine
 **Contents**: Philosophical grounding, meta-theory, ontological foundations
 **Best for**: Understanding the philosophical bedrock
@@ -66,7 +66,7 @@
 **Purpose**: Philosophical framework and formal logic representation
 **Shows**: How ontological philosophy connects to logical operations
 **Key elements**: Logical operators, truth conditions, philosophical primitives
-**Related materials**: Bridge between StructuredTheoryOfEverything.pdf and technical specifications
+**Related materials**: Bridge between StructuredTheoryOfEverything.md and technical specifications
 **Use case**: Understanding the logical grounding of architectural choices
 
 ### Unified-Logic.jpg (606 KB)
@@ -141,7 +141,7 @@ Each Disclosure document (~700 KB) provides sequential, in-depth analysis:
 ### Path 1: Philosophical Introduction
 **For**: Those interested in ontological foundations
 **Order**:
-1. StructuredTheoryOfEverything.pdf (full read)
+1. StructuredTheoryOfEverything.md (full read)
 2. Philosophy-Logic.jpg
 3. Logic-System.jpg
 4. -Print-THE SOVEREIGNTY ENGINE-.pdf (Chapters 1, 12)
@@ -183,13 +183,13 @@ Each Disclosure document (~700 KB) provides sequential, in-depth analysis:
 2. Operational-Transition-Dynamis.jpg
 3. -Print-THE SOVEREIGNTY ENGINE-.pdf (Chapter 12: Safety Conditions)
 4. Disclosure series (focus on safety-related content)
-5. StructuredTheoryOfEverything.pdf (ethical constraints section)
+5. StructuredTheoryOfEverything.md (ethical constraints section)
 
 ## Cross-Reference Map
 
 | Material | Connects To | Why |
 |----------|-------------|-----|
-| StructuredTheoryOfEverything.pdf | Philosophy-Logic.jpg | Theoretical foundation → logical implementation |
+| StructuredTheoryOfEverything.md | Philosophy-Logic.jpg | Theoretical foundation → logical implementation |
 | Philosophy-Logic.jpg | Logic-System.jpg | Complex logic → basic operators |
 | Block Diagram.png | Unified Diagram.jpg | Components → integrated system |
 | Meta-Measure-State-Cube.jpg | Combinatorial-State-Space.jpg | 3D state space → emergent behaviors |

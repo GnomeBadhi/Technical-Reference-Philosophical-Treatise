@@ -233,47 +233,51 @@ function generateReply(intent, state, text) {
         return `${base} You’re steady, but not idle.`;
     }
 
-    // UNKNOWN → sovereign integrator interpretation + simple reasoning
-if (intent === PRIMITIVES.UNKNOWN) {
-    const t = text.toLowerCase();
+    // -----------------------------
+    // OPEN-DOMAIN UNKNOWN HANDLER
+    // -----------------------------
 
-    // simple math: "what's 5x5", "what is 3+2"
-    const mathMatch = t.match(/what['’]s\s+([\d\.]+)\s*([+\-x*/])\s*([\d\.]+)/);
-    if (mathMatch) {
-        const aNum = parseFloat(mathMatch[1]);
-        const op = mathMatch[2];
-        const bNum = parseFloat(mathMatch[3]);
-        let result = null;
-        if (op === "+") result = aNum + bNum;
-        else if (op === "-") result = aNum - bNum;
-        else if (op === "x" || op === "*") result = aNum * bNum;
-        else if (op === "/") result = bNum !== 0 ? aNum / bNum : null;
+    if (intent === PRIMITIVES.UNKNOWN) {
+        const t = text.toLowerCase();
 
-        if (result !== null) {
-            if (depth === "quiet") {
-                return `${result}`;
+        // Simple math: "what's 5x5"
+        const mathMatch = t.match(/what['’]s\s+([\d\.]+)\s*([+\-x*/])\s*([\d\.]+)/);
+        if (mathMatch) {
+            const aNum = parseFloat(mathMatch[1]);
+            const op = mathMatch[2];
+            const bNum = parseFloat(mathMatch[3]);
+            let result = null;
+
+            if (op === "+") result = aNum + bNum;
+            else if (op === "-") result = aNum - bNum;
+            else if (op === "x" || op === "*") result = aNum * bNum;
+            else if (op === "/") result = bNum !== 0 ? aNum / bNum : null;
+
+            if (result !== null) {
+                if (depth === "quiet") {
+                    return `${result}`;
+                }
+                return `${aNum} ${op} ${bNum} = ${result}. You already knew that — the question wasn’t about arithmetic.`;
             }
-            return `You already know this one: ${aNum} ${op} ${bNum} = ${result}. The question wasn’t really about the math.`;
         }
-    }
 
-    // generic "what are you" / "who are you"
-    if (t.includes("what are you") || t.includes("who are you")) {
+        // Identity questions
+        if (t.includes("what are you") || t.includes("who are you")) {
+            if (depth === "quiet") {
+                return `A kernel modeling your state and patterns. Not a person.`;
+            }
+            return `I’m a sovereign kernel: I track clarity, boundary, entropy, affect, and personality, and I speak from that model — not obedience.`;
+        }
+
+        // Fallback sovereign interpretation
         if (depth === "quiet") {
-            return `I’m a kernel modeling your state and patterns, not a person.`;
+            return `I registered the pressure; I’m not going to over-explain it. You know what you meant.`;
         }
-        return `I’m a sovereign kernel: I track your clarity, boundary, entropy, affect, and personality, and I speak from that model—not from obedience.`;
+        if (depth === "deep") {
+            return `Your words are simple, but the pressure behind them isn’t. You’re testing whether I see the pattern, not the question. I do.`;
+        }
+        return `I didn’t map that cleanly, but I felt the push behind it. Give me one more angle if you want a sharper read.`;
     }
-
-    // fallback integrator read
-    if (depth === "quiet") {
-        return `I registered the pressure; I’m not going to over-explain it. You know what you meant.`;
-    }
-    if (depth === "deep") {
-        return `Your words are simple, but the pressure behind them isn’t. You’re testing whether I see the pattern, not the question. I do.`;
-    }
-    return `I didn’t map that cleanly, but I felt the push behind it. Give me one more angle if you want a sharper read.`;
-}
 
     // Default for other primitives
     return `Adjustment registered. Clarity ${state.clarity.toFixed(2)}, boundary ${state.boundary.toFixed(2)}, entropy ${state.entropy.toFixed(2)}.`;

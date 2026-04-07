@@ -1,3 +1,5 @@
+// Memory hooks
+// (Assuming Memory.js is loaded before Kernel.js)
 // -----------------------------
 // Kernel State
 // -----------------------------

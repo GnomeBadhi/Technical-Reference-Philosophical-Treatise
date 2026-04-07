@@ -18,46 +18,35 @@ function addMessage(sender, text) {
     output.scrollTop = output.scrollHeight;
 }
 
-// Initial system message
 addMessage("system", "Kernel online. State ready.");
-
 
 // -----------------------------
 // Input Handler
 // -----------------------------
 
-if (input) {
-    input.addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-            const text = input.value.trim();
-            if (!text) return;
-            input.value = "";
+input.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = "";
 
-            // User message
-            addMessage("user", text);
+        addMessage("user", text);
 
-            // Update kernel models
-            updateAffectFromText(text);
-            updatePersonalityFromText(text);
+        updateAffectFromText(text);
+        updatePersonalityFromText(text);
 
-            // Parse → mutate → generate reply
-            const intent = parseIntent(text);
-            processIntent(intent, text);
-            const reply = generateReply(intent, kernelState, text);
+        const intent = parseIntent(text);
+        processIntent(intent, text);
+        const reply = generateReply(intent, kernelState, text);
 
-            // System reply
-            addMessage("system", reply);
+        addMessage("system", reply);
 
-            // Update state panel
-            statePanel.textContent = JSON.stringify(kernelState, null, 2);
+        statePanel.textContent = JSON.stringify(kernelState, null, 2);
 
-            // Redraw visualizations
-            draw2D(kernelState);
-            draw3D(kernelState);
-        }
-    });
-}
-
+        draw2D(kernelState);
+        draw3D(kernelState);
+    }
+});
 
 // -----------------------------
 // Initial Draw

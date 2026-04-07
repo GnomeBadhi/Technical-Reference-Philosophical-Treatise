@@ -1,144 +1,169 @@
-/* -----------------------------
-   Global
------------------------------ */
+/* --------------------------------------------------
+   GLOBAL
+-------------------------------------------------- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "JetBrains Mono", monospace;
+}
 
 body {
-    margin: 0;
-    background: #050505;
-    color: #eee;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-#layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 45vh 55vh;
+    background: #0b0d10;
+    color: #d8e1e8;
     height: 100vh;
-    gap: 4px;
-    padding: 4px;
-    box-sizing: border-box;
-}
-
-#terminal,
-#state-panel,
-#canvas-panel,
-#webgl-panel {
-    border: 1px solid #222;
-    background: #0b0b0b;
-    padding: 8px;
-    box-sizing: border-box;
     overflow: hidden;
 }
 
-/* -----------------------------
-   Terminal / Chat
------------------------------ */
+/* Subtle neural glow */
+:root {
+    --glow-soft: 0 0 12px rgba(0, 255, 200, 0.08);
+    --glow-text: 0 0 6px rgba(0, 255, 200, 0.15);
+    --panel-bg: rgba(20, 24, 28, 0.6);
+    --border-soft: rgba(0, 255, 200, 0.12);
+}
+
+/* --------------------------------------------------
+   COCKPIT LAYOUT
+-------------------------------------------------- */
+
+#cockpit {
+    display: grid;
+    grid-template-rows: 40% 25% 35%;
+    height: 100vh;
+    gap: 6px;
+    padding: 6px;
+}
+
+/* --------------------------------------------------
+   TERMINAL
+-------------------------------------------------- */
 
 #terminal {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
+    box-shadow: var(--glow-soft);
 }
 
 #terminal-output {
     flex: 1;
     overflow-y: auto;
     padding-right: 4px;
-}
-
-.chat-log {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.msg {
-    padding: 6px 10px;
-    border-radius: 8px;
-    max-width: 90%;
-    white-space: pre-wrap;
-    line-height: 1.4;
     font-size: 14px;
+    line-height: 1.35;
 }
 
-.msg.user {
-    align-self: flex-end;
-    background: #1a1a1a;
-    color: #0f0;
+#terminal-output .user {
+    color: #7fffd4;
+    text-shadow: var(--glow-text);
+    margin-bottom: 6px;
 }
 
-.msg.system {
-    align-self: flex-start;
-    background: #111;
-    color: #0af;
+#terminal-output .kernel {
+    color: #8ab4f8;
+    margin-bottom: 10px;
 }
 
 #terminal-input {
     margin-top: 6px;
-    width: 100%;
     padding: 8px;
-    font-size: 14px;
-    background: #111;
-    color: #0f0;
-    border: 1px solid #222;
+    background: #111417;
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    color: #d8e1e8;
+    font-size: 15px;
     outline: none;
 }
 
-/* -----------------------------
-   Kernel State Panel
------------------------------ */
+#terminal-input:focus {
+    border-color: rgba(0, 255, 200, 0.25);
+    box-shadow: 0 0 6px rgba(0, 255, 200, 0.15);
+}
+
+/* --------------------------------------------------
+   STATE PANEL
+-------------------------------------------------- */
+
+#state-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    padding: 8px;
+    overflow-y: auto;
+    box-shadow: var(--glow-soft);
+}
 
 #state-panel h2 {
-    margin: 0 0 6px 0;
-    font-size: 16px;
-    color: #0af;
+    color: #8ab4f8;
+    margin-bottom: 6px;
+    font-size: 15px;
+    text-shadow: var(--glow-text);
 }
 
-#state-panel pre {
-    margin: 0;
-    font-size: 12px;
-    color: #0f0;
-    background: #050505;
-    padding: 6px;
-    overflow: auto;
-    height: calc(100% - 28px);
+#state-json {
+    font-size: 13px;
+    white-space: pre-wrap;
+    color: #7fffd4;
 }
 
-/* -----------------------------
-   2D Canvas Panel
------------------------------ */
+/* --------------------------------------------------
+   VISUALS PANEL
+-------------------------------------------------- */
 
-#canvas-panel h2 {
-    margin: 0 0 6px 0;
-    font-size: 16px;
-    color: #0af;
+#visuals {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
 }
 
-#canvas2d {
+.viz-block {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--glow-soft);
+}
+
+.viz-block h2 {
+    color: #8ab4f8;
+    margin-bottom: 6px;
+    font-size: 15px;
+    text-shadow: var(--glow-text);
+}
+
+/* --------------------------------------------------
+   CANVASES
+-------------------------------------------------- */
+
+canvas {
+    flex: 1;
     width: 100%;
-    height: calc(100% - 28px);
-    display: block;
-    background: #000;
+    height: 100%;
+    background: #0f1215;
+    border-radius: 4px;
+    box-shadow: inset 0 0 12px rgba(0, 255, 200, 0.05);
 }
 
-/* -----------------------------
-   3D Canvas Panel
------------------------------ */
+/* --------------------------------------------------
+   SCROLLBAR (subtle)
+-------------------------------------------------- */
 
-#webgl-panel h2 {
-    margin: 0 0 6px 0;
-    font-size: 16px;
-    color: #0af;
+::-webkit-scrollbar {
+    width: 6px;
 }
 
-#webgl-canvas {
-    width: 100%;
-    height: calc(100% - 28px);
-    display: block;
-    background: #000;
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 200, 0.15);
+    border-radius: 3px;
 }
-#viz-2d, #viz-3d {
-  width: 100%;
-  height: 200px;
-  background-color: #000;
-  display: block;
+
+::-webkit-scrollbar-track {
+    background: transparent;
 }

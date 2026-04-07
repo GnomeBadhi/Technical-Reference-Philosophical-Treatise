@@ -303,8 +303,7 @@ function textToSEInputs(text) {
 function getRegime(engine) {
     if (engine.recoveryMode)                            return "recovery";
     if (Math.abs(engine.RA - engine.SA) > 0.2)         return "autonomy_crisis";
-    if (engine.CE < 0.5)                               return "stress_adapted";
-    if (engine.CE >= 0.7 && engine.AI >= 0.7)          return "flourishing";
+    if (engine.CE >= 0.7 && engine.AI >= 0.7)          return "flourishing"; // CE=0.7 threshold §7.3
     return "stress_adapted";
 }
 

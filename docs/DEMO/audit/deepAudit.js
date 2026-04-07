@@ -307,12 +307,12 @@
         }
 
         _result(results, monotone,
-            "Axiom 6: lifecycle L' ≥ L for all 4 engines across 5 000 ticks");
+            `Axiom 6: lifecycle L' ≥ L for all ${1 + nodes.length} engines across 5 000 ticks`);
 
         // Lifecycle must have advanced (positive total displacement)
         const advanced = _allEngines(manager, nodes).every(e => e.lifecycle > 0);
         _result(results, advanced,
-            "Axiom 6: L(x) advanced from 0 after stress run (flow is non-trivial)");
+            `Axiom 6: L(x) advanced from 0 after stress run (flow is non-trivial)`);
 
         return { name: "LifecycleStress", results };
     }

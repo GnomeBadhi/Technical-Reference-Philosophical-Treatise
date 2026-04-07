@@ -56,6 +56,16 @@ const PRIM_DEFS = [
     { key: "AC", label: "AC",  desc: "Adaptive Capacity",  color: "#ff6480" }
 ];
 
+// Text-domain primitive definitions — mirrors PRIM_DEFS structure
+const TXT_PRIM_DEFS = [
+    { key: "SA_txt", label: "SA", desc: "Structural Alignment",  color: "#c060ff" },
+    { key: "IF",     label: "IF", desc: "Input Fidelity",        color: "#609fff" },
+    { key: "IT",     label: "IT", desc: "Identity Trace",        color: "#40d0b0" },
+    { key: "BI",     label: "BI", desc: "Boundary Integrity",    color: "#ffa040" },
+    { key: "SE_txt", label: "SE", desc: "Structural Energy",     color: "#80ff60" },
+    { key: "FD",     label: "FD", desc: "Flow Directionality",   color: "#ff60a0" }
+];
+
 function buildPrimitivesGrid(state) {
     primitivesGrid.innerHTML = "";
     for (const p of PRIM_DEFS) {
@@ -76,6 +86,31 @@ function buildPrimitivesGrid(state) {
             `</div>`;
 
         primitivesGrid.appendChild(row);
+    }
+}
+
+function buildTxtPrimitivesGrid(state) {
+    const grid = document.getElementById("txt-primitives-grid");
+    if (!grid || !state) return;
+    grid.innerHTML = "";
+    for (const p of TXT_PRIM_DEFS) {
+        const val = state[p.key];
+        const pct = (val * 100).toFixed(0);
+
+        const row = document.createElement("div");
+        row.className = "prim-row";
+        row.title = p.desc;
+
+        row.innerHTML =
+            `<div class="prim-label">` +
+                `<span class="prim-name">${p.label}</span>` +
+                `<span class="prim-value">${val.toFixed(3)}</span>` +
+            `</div>` +
+            `<div class="prim-bar-track">` +
+                `<div class="prim-bar-fill" style="width:${pct}%;background:${p.color};"></div>` +
+            `</div>`;
+
+        grid.appendChild(row);
     }
 }
 
@@ -100,6 +135,18 @@ function updateRegimeBadge(state) {
     regimeBadge.className = cls;
 }
 
+function updateTxtRegimeBadge(state) {
+    const badge = document.getElementById("txt-regime-badge");
+    if (!badge || !state) return;
+    if (state.reducedMode) {
+        badge.textContent = "REDUCED";
+        badge.className = "txt-regime-reduced";
+    } else {
+        badge.textContent = "ACTIVE";
+        badge.className = "txt-regime-active";
+    }
+}
+
 // --------------------------------------------------
 // UPDATE STATE PANEL
 // --------------------------------------------------
@@ -107,6 +154,11 @@ function updateRegimeBadge(state) {
 function updateStatePanel() {
     buildPrimitivesGrid(kernelState);
     updateRegimeBadge(kernelState);
+
+    if (typeof txtState !== "undefined") {
+        buildTxtPrimitivesGrid(txtState);
+        updateTxtRegimeBadge(txtState);
+    }
 
     const network = {
         manager: kernelState,

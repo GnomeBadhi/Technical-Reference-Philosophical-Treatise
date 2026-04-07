@@ -1,7 +1,11 @@
+// -----------------------------
+// UI Wiring
+// -----------------------------
 const input = document.getElementById("terminal-input");
 const output = document.getElementById("terminal-output");
 const statePanel = document.getElementById("state-json");
 
+// Chat-style message renderer
 function addMessage(sender, text) {
     const msg = document.createElement("div");
     msg.className = "msg " + sender;
@@ -10,25 +14,37 @@ function addMessage(sender, text) {
     output.scrollTop = output.scrollHeight;
 }
 
+// Initial system message
+addMessage("system", "Kernel online. State ready.");
+
+// Input handler
 input.addEventListener("keydown", e => {
     if (e.key === "Enter") {
         const text = input.value.trim();
+        if (!text) return;
+
         input.value = "";
+
+        // User message
         addMessage("user", text);
 
-const intent = parseIntent(text);
-const result = processIntent(intent);
+        // Kernel processing
+        const intent = parseIntent(text);
+        const result = processIntent(intent);
 
-addMessage("system", JSON.stringify(result, null, 2));
+        // System response (for now: raw JSON)
+        addMessage("system", JSON.stringify(result, null, 2));
 
+        // Update state panel
         statePanel.textContent = JSON.stringify(kernelState, null, 2);
 
+        // Redraw visualizations
         draw2D(kernelState);
         draw3D(kernelState);
     }
 });
 
 // Initial draw
+statePanel.textContent = JSON.stringify(kernelState, null, 2);
 draw2D(kernelState);
 draw3D(kernelState);
-statePanel.textContent = JSON.stringify(kernelState, null, 2);

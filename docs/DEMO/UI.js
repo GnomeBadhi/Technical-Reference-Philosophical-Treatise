@@ -13,7 +13,7 @@ const stateJson = document.getElementById("state-json");
 function printUser(text) {
     const div = document.createElement("div");
     div.className = "user";
-    div.textContent = text;
+    div.textContent = "You: " + text;
     termOut.appendChild(div);
     termOut.scrollTop = termOut.scrollHeight;
 }
@@ -21,9 +21,24 @@ function printUser(text) {
 function printKernel(text) {
     const div = document.createElement("div");
     div.className = "kernel";
-    div.textContent = text;
+    div.textContent = "Kernel: " + text;
     termOut.appendChild(div);
     termOut.scrollTop = termOut.scrollHeight;
+}
+
+// Show / remove a temporary "thinking" indicator
+function showThinking() {
+    const div = document.createElement("div");
+    div.className = "kernel thinking";
+    div.id = "thinking-indicator";
+    div.textContent = "Kernel: …";
+    termOut.appendChild(div);
+    termOut.scrollTop = termOut.scrollHeight;
+}
+
+function removeThinking() {
+    const el = document.getElementById("thinking-indicator");
+    if (el) el.remove();
 }
 
 // --------------------------------------------------
@@ -31,7 +46,11 @@ function printKernel(text) {
 // --------------------------------------------------
 
 function updateStatePanel() {
-    stateJson.textContent = JSON.stringify(kernelState, null, 2);
+    const network = {
+        manager: kernelState,
+        nodes: kernelNodes
+    };
+    stateJson.textContent = JSON.stringify(network, null, 2);
 }
 
 // --------------------------------------------------
@@ -41,31 +60,28 @@ function updateStatePanel() {
 function handleMessage(text) {
     if (!text.trim()) return;
 
-    // Show user message
     printUser(text);
 
-    // Update affect + personality
-    updateAffectFromText(text);
-    updatePersonalityFromText(text);
+    // ── SOVEREIGNTY ENGINE vC5.3 PIPELINE ────────────────────────────
+    // Reference: SovereigntyEngine.pdf §15.4 (Tick Architecture)
+    // processMessage: text → (ρ, μ, σ) → se_tick(manager) → propagateCoupling
+    // Invariants (purity=1, identity=1, sovereignty=1) are validated inside
+    // se_tick for every engine — stable and under coupling influence.
+    const reply = processMessage(text);
+    // ─────────────────────────────────────────────────────────────────
 
-    // Parse intent
-    const intent = parseIntent(text);
-
-    // Mutate state
-    processIntent(intent, text);
-
-    // Generate reply
-    const reply = generateReply(intent, kernelState, text);
-
-    // Output reply
-    printKernel(reply);
-
-    // Update state panel
-    updateStatePanel();
-
-    // Redraw visuals
-    draw2D(kernelState);
-    draw3D(kernelState);
+    termIn.disabled = true;
+    showThinking();
+    const delay = 300 + Math.random() * 300;
+    setTimeout(() => {
+        removeThinking();
+        printKernel(reply);
+        updateStatePanel();
+        draw2D(kernelState);
+        draw3D(kernelState);
+        termIn.disabled = false;
+        termIn.focus();
+    }, delay);
 }
 
 // --------------------------------------------------
@@ -88,4 +104,7 @@ window.addEventListener("load", () => {
     updateStatePanel();
     draw2D(kernelState);
     draw3D(kernelState);
+
+    // Welcome message — reflects SE6 primitives
+    printKernel("Sovereignty Engine vC5.3 online. I track RA, SA, AI, CE, CD, and AC as we talk — six primitives of cybernetic being. The 3 influenced nodes are running. What's on your mind?");
 });

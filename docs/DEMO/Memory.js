@@ -35,12 +35,14 @@ function updateThemes(text) {
 
 // --------------------------------------------------
 // PRESSURE TRAJECTORY MEMORY
+// Records CE (cognitive vitality) and |RA-SA| (autonomy tension) each tick.
+// Replaces entropy/arousal with SE6 primitives (§15.1.4, §7.3).
 // --------------------------------------------------
 
 function updatePressureTrajectory(state) {
     kernelMemory.pressureTrajectory.push({
-        entropy: state.entropy,
-        arousal: state.affect.arousal,
+        CE:      state.CE,
+        tension: Math.abs((state.RA || 0) - (state.SA || 0)),
         timestamp: Date.now()
     });
 
@@ -74,17 +76,20 @@ function generateMemoryInsight(state, text) {
         }
     }
 
-    // 3. Pressure trajectory
+    // 3. Pressure trajectory — CE vitality trend
     const traj = kernelMemory.pressureTrajectory;
     if (traj.length >= 2) {
         const prev = traj[traj.length - 2];
         const curr = traj[traj.length - 1];
 
-        if (curr.arousal < prev.arousal - 0.1) {
-            insights.push("Your activation dropped since the last exchange.");
+        if (curr.CE < prev.CE - 0.05) {
+            insights.push("CE dropped since the last exchange — cognitive load is accumulating.");
         }
-        if (curr.arousal > prev.arousal + 0.1) {
-            insights.push("Your activation spiked compared to a moment ago.");
+        if (curr.CE > prev.CE + 0.05) {
+            insights.push("CE recovered since the last exchange.");
+        }
+        if (curr.tension > 0.2) {
+            insights.push("RA/SA divergence is elevated — watch for AI strain.");
         }
     }
 

@@ -2,8 +2,11 @@ const input = document.getElementById("terminal-input");
 const output = document.getElementById("terminal-output");
 const statePanel = document.getElementById("state-json");
 
-function print(text) {
-    output.textContent += text + "\n";
+function addMessage(sender, text) {
+    const msg = document.createElement("div");
+    msg.className = "msg " + sender;
+    msg.textContent = text;
+    output.appendChild(msg);
     output.scrollTop = output.scrollHeight;
 }
 

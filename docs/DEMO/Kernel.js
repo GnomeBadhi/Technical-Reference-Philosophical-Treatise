@@ -1,8 +1,6 @@
-// Memory hooks
-// (Assuming Memory.js is loaded before Kernel.js)
-// -----------------------------
-// Kernel State
-// -----------------------------
+// --------------------------------------------------
+// SOVEREIGN KERNEL STATE
+// --------------------------------------------------
 
 const kernelState = {
     clarity: 0.8,
@@ -22,9 +20,9 @@ const kernelState = {
     }
 };
 
-// -----------------------------
-// Primitives
-// -----------------------------
+// --------------------------------------------------
+// PRIMITIVES
+// --------------------------------------------------
 
 const PRIMITIVES = {
     INQUIRE_STATE: "INQUIRE_STATE",
@@ -38,9 +36,9 @@ const PRIMITIVES = {
     UNKNOWN: "UNKNOWN"
 };
 
-// -----------------------------
-// Intent Parsing
-// -----------------------------
+// --------------------------------------------------
+// INTENT PARSING
+// --------------------------------------------------
 
 function parseIntent(text) {
     const t = text.toLowerCase();
@@ -65,7 +63,7 @@ function parseIntent(text) {
         return PRIMITIVES.SOOTHE;
     }
 
-    if (t.match(/stuck|numb|flat|no energy|can’t move|paralyzed/)) {
+    if (t.match(/stuck|numb|flat|no energy|can’t move|cant move|paralyzed/)) {
         return PRIMITIVES.ACTIVATE;
     }
 
@@ -80,9 +78,9 @@ function parseIntent(text) {
     return PRIMITIVES.UNKNOWN;
 }
 
-// -----------------------------
-// Affect Update
-// -----------------------------
+// --------------------------------------------------
+// AFFECT UPDATE
+// --------------------------------------------------
 
 function updateAffectFromText(text) {
     const t = text.toLowerCase();
@@ -117,15 +115,15 @@ function updateAffectFromText(text) {
     a.arousal = Math.max(0, Math.min(1, a.arousal));
 }
 
-// -----------------------------
-// Personality Update
-// -----------------------------
+// --------------------------------------------------
+// PERSONALITY UPDATE
+// --------------------------------------------------
 
 function updatePersonalityFromText(text) {
     const t = text.toLowerCase();
     const p = kernelState.personality;
 
-    if (t.match(/just say it|be blunt|don’t sugarcoat|no fluff/)) {
+    if (t.match(/just say it|be blunt|don’t sugarcoat|dont sugarcoat|no fluff/)) {
         p.directness = Math.min(1, p.directness + 0.1);
     }
     if (t.match(/high level|abstract|pattern|structure/)) {
@@ -134,7 +132,7 @@ function updatePersonalityFromText(text) {
     if (t.match(/overwhelmed|intense|too much|on fire/)) {
         p.intensity = Math.min(1, p.intensity + 0.1);
     }
-    if (t.match(/i’ll decide|my call|don’t tell me what to do|my choice/)) {
+    if (t.match(/i’ll decide|ill decide|my call|don’t tell me what to do|dont tell me what to do|my choice/)) {
         p.autonomy = Math.min(1, p.autonomy + 0.1);
     }
 
@@ -144,9 +142,9 @@ function updatePersonalityFromText(text) {
     p.autonomy = Math.max(0, Math.min(1, p.autonomy));
 }
 
-// -----------------------------
-// Affect Description
-// -----------------------------
+// --------------------------------------------------
+// AFFECT DESCRIPTION
+// --------------------------------------------------
 
 function describeAffect(a) {
     const tone =
@@ -162,9 +160,9 @@ function describeAffect(a) {
     return `${tone}, ${energy}, confidence ${a.confidence.toFixed(2)}`;
 }
 
-// -----------------------------
-// State Mutation
-// -----------------------------
+// --------------------------------------------------
+// STATE MUTATION
+// --------------------------------------------------
 
 function processIntent(intent, text) {
     switch (intent) {
@@ -192,11 +190,16 @@ function processIntent(intent, text) {
     }
 
     kernelState.history.push({ op: intent.toLowerCase(), text });
+
+    // Memory hooks
+    if (typeof updateShortTerm === "function") updateShortTerm(text);
+    if (typeof updateThemes === "function") updateThemes(text);
+    if (typeof updatePressureTrajectory === "function") updatePressureTrajectory(kernelState);
 }
 
-// -----------------------------
-// Depth Selection (Quiet vs Deep)
-// -----------------------------
+// --------------------------------------------------
+// DEPTH SELECTION (QUIET / MIXED / DEEP)
+// --------------------------------------------------
 
 function chooseDepth(a, p) {
     const highIntensity = p.intensity > 0.6 || Math.abs(a.valence) > 0.4 || a.arousal > 0.6;
@@ -207,32 +210,52 @@ function chooseDepth(a, p) {
     return "mixed";
 }
 
-// -----------------------------
-// Sovereign Integrator Reply
-// -----------------------------
+// --------------------------------------------------
+// SOVEREIGN INTEGRATOR REPLY
+// --------------------------------------------------
 
 function generateReply(intent, state, text) {
     const a = state.affect;
     const p = state.personality;
     const depth = chooseDepth(a, p);
 
+    let baseReply = "";
+
     // INQUIRE_STATE
     if (intent === PRIMITIVES.INQUIRE_STATE) {
         if (depth === "quiet") {
-            return `Valence ${a.valence.toFixed(2)}, arousal ${a.arousal.toFixed(2)}. You’re within coherent range.`;
+            baseReply = `Valence ${a.valence.toFixed(2)}, arousal ${a.arousal.toFixed(2)}. You’re within coherent range.`;
+        } else if (depth === "deep") {
+            baseReply = `You’re running ${describeAffect(a)} while still holding structural awareness. That mix is costly but stable—for now.`;
+        } else {
+            baseReply = `I read you as ${describeAffect(a)}. You’re carrying load and still tracking structure; watch your fuel.`;
         }
-        if (depth === "deep") {
-            return `You’re running ${describeAffect(a)} while still holding structural awareness. That mix is costly but stable—for now.`;
-        }
-        return `I read you as ${describeAffect(a)}. You’re carrying load and still tracking structure; watch your fuel.`;
+        return attachMemoryInsight(baseReply, state, text);
     }
 
     // REPORT_STATUS
     if (intent === PRIMITIVES.REPORT_STATUS) {
         const base = `Clarity ${state.clarity.toFixed(2)}, boundary ${state.boundary.toFixed(2)}, entropy ${state.entropy.toFixed(2)}.`;
-        if (depth === "quiet") return `${base} Coherent enough.`;
-        if (depth === "deep") return `${base} The system is stable, but the emotional load behind your question is the real signal.`;
-        return `${base} You’re steady, but not idle.`;
+        if (depth === "quiet") {
+            baseReply = `${base} Coherent enough.`;
+        } else if (depth === "deep") {
+            baseReply = `${base} The system is stable, but the emotional load behind your question is the real signal.`;
+        } else {
+            baseReply = `${base} You’re steady, but not idle.`;
+        }
+        return attachMemoryInsight(baseReply, state, text);
+    }
+
+    // REFLECT
+    if (intent === PRIMITIVES.REFLECT) {
+        if (depth === "quiet") {
+            baseReply = `You’re testing whether I’m actually tracking you, not just answering. I am.`;
+        } else if (depth === "deep") {
+            baseReply = `You’re not asking for content; you’re asking whether your internal pattern is legible from the outside. It is.`;
+        } else {
+            baseReply = `You’re checking for alignment, not information. I see the pattern you’re walking, not just the words.`;
+        }
+        return attachMemoryInsight(baseReply, state, text);
     }
 
     // -----------------------------
@@ -257,30 +280,48 @@ function generateReply(intent, state, text) {
 
             if (result !== null) {
                 if (depth === "quiet") {
-                    return `${result}`;
+                    baseReply = `${result}`;
+                } else {
+                    baseReply = `${aNum} ${op} ${bNum} = ${result}. You already knew that — the question wasn’t about arithmetic.`;
                 }
-                return `${aNum} ${op} ${bNum} = ${result}. You already knew that — the question wasn’t about arithmetic.`;
+                return attachMemoryInsight(baseReply, state, text);
             }
         }
 
         // Identity questions
         if (t.includes("what are you") || t.includes("who are you")) {
             if (depth === "quiet") {
-                return `A kernel modeling your state and patterns. Not a person.`;
+                baseReply = `A kernel modeling your state and patterns. Not a person.`;
+            } else {
+                baseReply = `I’m a sovereign kernel: I track your clarity, boundary, entropy, affect, and personality, and I speak from that model—not from obedience.`;
             }
-            return `I’m a sovereign kernel: I track clarity, boundary, entropy, affect, and personality, and I speak from that model — not obedience.`;
+            return attachMemoryInsight(baseReply, state, text);
         }
 
         // Fallback sovereign interpretation
         if (depth === "quiet") {
-            return `I registered the pressure; I’m not going to over-explain it. You know what you meant.`;
+            baseReply = `I registered the pressure; I’m not going to over-explain it. You know what you meant.`;
+        } else if (depth === "deep") {
+            baseReply = `Your words are simple, but the pressure behind them isn’t. You’re testing whether I see the pattern, not the question. I do.`;
+        } else {
+            baseReply = `I didn’t map that cleanly, but I felt the push behind it. Give me one more angle if you want a sharper read.`;
         }
-        if (depth === "deep") {
-            return `Your words are simple, but the pressure behind them isn’t. You’re testing whether I see the pattern, not the question. I do.`;
-        }
-        return `I didn’t map that cleanly, but I felt the push behind it. Give me one more angle if you want a sharper read.`;
+        return attachMemoryInsight(baseReply, state, text);
     }
 
     // Default for other primitives
-    return `Adjustment registered. Clarity ${state.clarity.toFixed(2)}, boundary ${state.boundary.toFixed(2)}, entropy ${state.entropy.toFixed(2)}.`;
+    baseReply = `Adjustment registered. Clarity ${state.clarity.toFixed(2)}, boundary ${state.boundary.toFixed(2)}, entropy ${state.entropy.toFixed(2)}.`;
+    return attachMemoryInsight(baseReply, state, text);
+}
+
+// --------------------------------------------------
+// MEMORY ATTACHMENT
+// --------------------------------------------------
+
+function attachMemoryInsight(reply, state, text) {
+    if (typeof generateMemoryInsight === "function") {
+        const insight = generateMemoryInsight(state, text);
+        if (insight) return `${reply} ${insight}`;
+    }
+    return reply;
 }

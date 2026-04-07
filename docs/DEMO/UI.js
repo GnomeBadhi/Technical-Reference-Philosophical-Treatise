@@ -1,57 +1,91 @@
-// -----------------------------
-// UI Elements
-// -----------------------------
+// --------------------------------------------------
+// TERMINAL ELEMENTS
+// --------------------------------------------------
 
-const input = document.getElementById("terminal-input");
-const output = document.getElementById("terminal-output");
-const statePanel = document.getElementById("state-json");
+const termOut = document.getElementById("terminal-output");
+const termIn = document.getElementById("terminal-input");
+const stateJson = document.getElementById("state-json");
 
-// -----------------------------
-// Chat Message Renderer
-// -----------------------------
+// --------------------------------------------------
+// PRINT TO TERMINAL
+// --------------------------------------------------
 
-function addMessage(sender, text) {
-    const msg = document.createElement("div");
-    msg.className = "msg " + sender;
-    msg.textContent = text;
-    output.appendChild(msg);
-    output.scrollTop = output.scrollHeight;
+function printUser(text) {
+    const div = document.createElement("div");
+    div.className = "user";
+    div.textContent = text;
+    termOut.appendChild(div);
+    termOut.scrollTop = termOut.scrollHeight;
 }
 
-addMessage("system", "Kernel online. State ready.");
+function printKernel(text) {
+    const div = document.createElement("div");
+    div.className = "kernel";
+    div.textContent = text;
+    termOut.appendChild(div);
+    termOut.scrollTop = termOut.scrollHeight;
+}
 
-// -----------------------------
-// Input Handler
-// -----------------------------
+// --------------------------------------------------
+// UPDATE STATE PANEL
+// --------------------------------------------------
 
-input.addEventListener("keydown", e => {
+function updateStatePanel() {
+    stateJson.textContent = JSON.stringify(kernelState, null, 2);
+}
+
+// --------------------------------------------------
+// MAIN MESSAGE HANDLER
+// --------------------------------------------------
+
+function handleMessage(text) {
+    if (!text.trim()) return;
+
+    // Show user message
+    printUser(text);
+
+    // Update affect + personality
+    updateAffectFromText(text);
+    updatePersonalityFromText(text);
+
+    // Parse intent
+    const intent = parseIntent(text);
+
+    // Mutate state
+    processIntent(intent, text);
+
+    // Generate reply
+    const reply = generateReply(intent, kernelState, text);
+
+    // Output reply
+    printKernel(reply);
+
+    // Update state panel
+    updateStatePanel();
+
+    // Redraw visuals
+    draw2D(kernelState);
+    draw3D(kernelState);
+}
+
+// --------------------------------------------------
+// INPUT HANDLER
+// --------------------------------------------------
+
+termIn.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-        const text = input.value.trim();
-        if (!text) return;
-        input.value = "";
-
-        addMessage("user", text);
-
-        updateAffectFromText(text);
-        updatePersonalityFromText(text);
-
-        const intent = parseIntent(text);
-        processIntent(intent, text);
-        const reply = generateReply(intent, kernelState, text);
-
-        addMessage("system", reply);
-
-        statePanel.textContent = JSON.stringify(kernelState, null, 2);
-
-        draw2D(kernelState);
-        draw3D(kernelState);
+        const text = termIn.value;
+        termIn.value = "";
+        handleMessage(text);
     }
 });
 
-// -----------------------------
-// Initial Draw
-// -----------------------------
+// --------------------------------------------------
+// INITIALIZE
+// --------------------------------------------------
 
-statePanel.textContent = JSON.stringify(kernelState, null, 2);
-draw2D(kernelState);
-draw3D(kernelState);
+window.addEventListener("load", () => {
+    updateStatePanel();
+    draw2D(kernelState);
+    draw3D(kernelState);
+});

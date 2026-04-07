@@ -1,81 +1,66 @@
 // -----------------------------
-// 2D Canvas Visualization
+// 2D Visualization
 // -----------------------------
+
 const canvas2d = document.getElementById("canvas2d");
-const ctx = canvas2d.getContext("2d");
+const ctx2d = canvas2d.getContext("2d");
+
+function resize2D() {
+    canvas2d.width = canvas2d.clientWidth;
+    canvas2d.height = canvas2d.clientHeight;
+}
 
 function draw2D(state) {
-    const w = canvas2d.width = canvas2d.clientWidth;
-    const h = canvas2d.height = canvas2d.clientHeight;
+    if (!canvas2d || !ctx2d) return;
+    resize2D();
 
-    ctx.clearRect(0, 0, w, h);
+    const w = canvas2d.width;
+    const h = canvas2d.height;
 
-    // Draw clarity bar
-    ctx.fillStyle = "#0f0";
-    ctx.fillRect(20, 20, state.clarity * (w - 40), 20);
+    ctx2d.clearRect(0, 0, w, h);
 
-    // Draw entropy bar
-    ctx.fillStyle = "#f00";
-    ctx.fillRect(20, 60, state.entropy * (w - 40), 20);
+    // background
+    ctx2d.fillStyle = "#111";
+    ctx2d.fillRect(0, 0, w, h);
+
+    // clarity bar (green)
+    const clarityWidth = w * state.clarity;
+    ctx2d.fillStyle = "#00ff66";
+    ctx2d.fillRect(0, h * 0.25 - 10, clarityWidth, 20);
+
+    // entropy bar (red)
+    const entropyWidth = w * state.entropy;
+    ctx2d.fillStyle = "#ff3355";
+    ctx2d.fillRect(0, h * 0.75 - 10, entropyWidth, 20);
 }
 
 // -----------------------------
-// WebGL 3D Visualization
+// 3D Visualization (simple 2D proxy)
 // -----------------------------
-const glCanvas = document.getElementById("webgl-canvas");
-const gl = glCanvas.getContext("webgl");
 
-let angle = 0;
+const webglCanvas = document.getElementById("webgl-canvas");
+const webglCtx = webglCanvas.getContext("2d");
+
+function resize3D() {
+    webglCanvas.width = webglCanvas.clientWidth;
+    webglCanvas.height = webglCanvas.clientHeight;
+}
 
 function draw3D(state) {
-    const w = glCanvas.width = glCanvas.clientWidth;
-    const h = glCanvas.height = glCanvas.clientHeight;
+    if (!webglCanvas || !webglCtx) return;
+    resize3D();
 
-    gl.viewport(0, 0, w, h);
-    gl.clearColor(0.05, 0.05, 0.05, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    const w = webglCanvas.width;
+    const h = webglCanvas.height;
 
-    // Simple animated dot representing kernel state
-    const x = state.clarity * 2 - 1;
-    const y = state.entropy * -2 + 1;
+    webglCtx.fillStyle = "#000";
+    webglCtx.fillRect(0, 0, w, h);
 
-    const vertices = new Float32Array([x, y, 0]);
+    // map clarity/boundary/entropy into a point
+    const x = w * state.clarity;
+    const y = h * (1 - state.boundary);
+    const size = 6 + 20 * state.entropy;
 
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-    const vs = `
-        attribute vec3 pos;
-        void main() {
-            gl_PointSize = 12.0;
-            gl_Position = vec4(pos, 1.0);
-        }
-    `;
-
-    const fs = `
-        void main() {
-            gl_FragColor = vec4(0.2, 0.8, 1.0, 1.0);
-        }
-    `;
-
-    const vshader = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vshader, vs);
-    gl.compileShader(vshader);
-
-    const fshader = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fshader, fs);
-    gl.compileShader(fshader);
-
-    const program = gl.createProgram();
-    gl.attachShader(program, vshader);
-    gl.attachShader(program, fshader);
-    gl.linkProgram(program);
-    gl.useProgram(program);
-
-    const posLoc = gl.getAttribLocation(program, "pos");
-    gl.enableVertexAttribArray(posLoc);
-    gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
-
-    gl.drawArrays(gl.POINTS, 0, 1);
+    webglCtx.fillStyle = "#33aaff";
+    webglCtx.fillRect(x - size / 2, y - size / 2, size, size);
 }

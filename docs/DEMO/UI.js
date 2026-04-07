@@ -13,7 +13,7 @@ const stateJson = document.getElementById("state-json");
 function printUser(text) {
     const div = document.createElement("div");
     div.className = "user";
-    div.textContent = text;
+    div.textContent = "You: " + text;
     termOut.appendChild(div);
     termOut.scrollTop = termOut.scrollHeight;
 }
@@ -21,9 +21,24 @@ function printUser(text) {
 function printKernel(text) {
     const div = document.createElement("div");
     div.className = "kernel";
-    div.textContent = text;
+    div.textContent = "Kernel: " + text;
     termOut.appendChild(div);
     termOut.scrollTop = termOut.scrollHeight;
+}
+
+// Show / remove a temporary "thinking" indicator
+function showThinking() {
+    const div = document.createElement("div");
+    div.className = "kernel thinking";
+    div.id = "thinking-indicator";
+    div.textContent = "Kernel: …";
+    termOut.appendChild(div);
+    termOut.scrollTop = termOut.scrollHeight;
+}
+
+function removeThinking() {
+    const el = document.getElementById("thinking-indicator");
+    if (el) el.remove();
 }
 
 // --------------------------------------------------
@@ -57,15 +72,19 @@ function handleMessage(text) {
     // Generate reply
     const reply = generateReply(intent, kernelState, text);
 
-    // Output reply
-    printKernel(reply);
-
-    // Update state panel
-    updateStatePanel();
-
-    // Redraw visuals
-    draw2D(kernelState);
-    draw3D(kernelState);
+    // Show thinking indicator, then reveal reply after a short delay
+    termIn.disabled = true;
+    showThinking();
+    const delay = 300 + Math.random() * 300;
+    setTimeout(() => {
+        removeThinking();
+        printKernel(reply);
+        updateStatePanel();
+        draw2D(kernelState);
+        draw3D(kernelState);
+        termIn.disabled = false;
+        termIn.focus();
+    }, delay);
 }
 
 // --------------------------------------------------
@@ -88,4 +107,7 @@ window.addEventListener("load", () => {
     updateStatePanel();
     draw2D(kernelState);
     draw3D(kernelState);
+
+    // Welcome message
+    printKernel("Hello. I'm the Sovereign Kernel — I track your clarity, focus, and state as we talk. Just speak naturally. What's on your mind?");
 });

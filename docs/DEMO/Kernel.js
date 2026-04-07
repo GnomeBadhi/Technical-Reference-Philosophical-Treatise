@@ -143,21 +143,48 @@ function updatePersonalityFromText(text) {
 }
 
 // --------------------------------------------------
-// AFFECT DESCRIPTION
+// AFFECT DESCRIPTION (natural language)
 // --------------------------------------------------
 
 function describeAffect(a) {
-    const tone =
-        a.valence > 0.3 ? "mostly positive" :
-        a.valence < -0.3 ? "mostly negative" :
-        "mixed";
+    let tone;
+    if (a.valence > 0.3) tone = "things feel mostly positive right now";
+    else if (a.valence < -0.3) tone = "there's a negative pull in the background";
+    else tone = "your mood is somewhere in the middle — not great, not bad";
 
-    const energy =
-        a.arousal > 0.6 ? "highly activated" :
-        a.arousal < 0.3 ? "low activation" :
-        "moderately activated";
+    let energy;
+    if (a.arousal > 0.6) energy = "you're pretty activated and alert";
+    else if (a.arousal < 0.3) energy = "your energy feels low";
+    else energy = "your energy is moderate";
 
-    return `${tone}, ${energy}, confidence ${a.confidence.toFixed(2)}`;
+    let conf;
+    if (a.confidence > 0.7) conf = "and you seem fairly confident";
+    else if (a.confidence < 0.4) conf = "though confidence is a bit shaky";
+    else conf = "with average confidence";
+
+    return `${tone}, ${energy}, ${conf}`;
+}
+
+// Natural-language kernel state summary
+function describeKernelState(state) {
+    const { clarity, boundary, entropy } = state;
+
+    let clar;
+    if (clarity > 0.8) clar = "thinking is very clear";
+    else if (clarity > 0.5) clar = "thinking is reasonably clear";
+    else clar = "things feel a bit foggy right now";
+
+    let bound;
+    if (boundary > 0.8) bound = "your sense of self feels solid";
+    else if (boundary > 0.5) bound = "boundaries are holding";
+    else bound = "your boundaries feel a little blurry";
+
+    let entr;
+    if (entropy < 0.2) entr = "and things are fairly stable";
+    else if (entropy < 0.5) entr = "and there's some noise in the system";
+    else entr = "and there's a fair amount of inner turbulence";
+
+    return `${clar}, ${bound}, ${entr}`;
 }
 
 // --------------------------------------------------
@@ -224,24 +251,23 @@ function generateReply(intent, state, text) {
     // INQUIRE_STATE
     if (intent === PRIMITIVES.INQUIRE_STATE) {
         if (depth === "quiet") {
-            baseReply = `Valence ${a.valence.toFixed(2)}, arousal ${a.arousal.toFixed(2)}. You’re within coherent range.`;
+            baseReply = `Right now — ${describeAffect(a)}.`;
         } else if (depth === "deep") {
-            baseReply = `You’re running ${describeAffect(a)} while still holding structural awareness. That mix is costly but stable—for now.`;
+            baseReply = `Here’s what I’m reading: ${describeAffect(a)}. You’re carrying load and still tracking structure — that’s a costly combination to sustain.`;
         } else {
-            baseReply = `I read you as ${describeAffect(a)}. You’re carrying load and still tracking structure; watch your fuel.`;
+            baseReply = `Honestly? ${describeAffect(a)}. You’re holding things together, but keep an eye on your fuel.`;
         }
         return attachMemoryInsight(baseReply, state, text);
     }
 
     // REPORT_STATUS
     if (intent === PRIMITIVES.REPORT_STATUS) {
-        const base = `Clarity ${state.clarity.toFixed(2)}, boundary ${state.boundary.toFixed(2)}, entropy ${state.entropy.toFixed(2)}.`;
         if (depth === "quiet") {
-            baseReply = `${base} Coherent enough.`;
+            baseReply = `${describeKernelState(state)}. All good.`;
         } else if (depth === "deep") {
-            baseReply = `${base} The system is stable, but the emotional load behind your question is the real signal.`;
+            baseReply = `${describeKernelState(state)}. The system is stable — but the fact that you’re asking might be the real signal.`;
         } else {
-            baseReply = `${base} You’re steady, but not idle.`;
+            baseReply = `${describeKernelState(state)}. You’re steady, but definitely not idle.`;
         }
         return attachMemoryInsight(baseReply, state, text);
     }
@@ -249,11 +275,47 @@ function generateReply(intent, state, text) {
     // REFLECT
     if (intent === PRIMITIVES.REFLECT) {
         if (depth === "quiet") {
-            baseReply = `You’re testing whether I’m actually tracking you, not just answering. I am.`;
+            baseReply = `You’re checking whether I’m actually tracking you, not just responding. I am.`;
         } else if (depth === "deep") {
-            baseReply = `You’re not asking for content; you’re asking whether your internal pattern is legible from the outside. It is.`;
+            baseReply = `You’re not asking for information — you’re asking whether your internal pattern is visible from the outside. It is. I see it.`;
         } else {
-            baseReply = `You’re checking for alignment, not information. I see the pattern you’re walking, not just the words.`;
+            baseReply = `You’re looking for alignment, not just an answer. I see the pattern you’re walking, not just the words you’re using.`;
+        }
+        return attachMemoryInsight(baseReply, state, text);
+    }
+
+    // ADJUST_CLARITY / ADJUST_BOUNDARY / ADJUST_ENTROPY
+    if (intent === PRIMITIVES.ADJUST_CLARITY) {
+        baseReply = `Got it — sharpening clarity. ${describeKernelState(state)}.`;
+        return attachMemoryInsight(baseReply, state, text);
+    }
+
+    if (intent === PRIMITIVES.ADJUST_BOUNDARY) {
+        baseReply = `Boundaries tightened. ${describeKernelState(state)}.`;
+        return attachMemoryInsight(baseReply, state, text);
+    }
+
+    if (intent === PRIMITIVES.ADJUST_ENTROPY) {
+        baseReply = `Dialing back the noise. ${describeKernelState(state)}.`;
+        return attachMemoryInsight(baseReply, state, text);
+    }
+
+    // SOOTHE
+    if (intent === PRIMITIVES.SOOTHE) {
+        if (depth === "deep") {
+            baseReply = `That sounds like a lot. It makes sense to feel overwhelmed — take a breath. You don’t have to process everything at once.`;
+        } else {
+            baseReply = `Noted. Stepping back is the right move when things pile up.`;
+        }
+        return attachMemoryInsight(baseReply, state, text);
+    }
+
+    // ACTIVATE
+    if (intent === PRIMITIVES.ACTIVATE) {
+        if (depth === "deep") {
+            baseReply = `Being stuck is real. Sometimes it’s not about pushing harder — it’s about finding one small thing that moves. What would that look like for you?`;
+        } else {
+            baseReply = `Okay — let’s find one concrete thing to move on. What’s the smallest step that feels possible right now?`;
         }
         return attachMemoryInsight(baseReply, state, text);
     }
@@ -280,9 +342,9 @@ function generateReply(intent, state, text) {
 
             if (result !== null) {
                 if (depth === "quiet") {
-                    baseReply = `${result}`;
+                    baseReply = `${result}.`;
                 } else {
-                    baseReply = `${aNum} ${op} ${bNum} = ${result}. You already knew that — the question wasn’t about arithmetic.`;
+                    baseReply = `${aNum} ${op} ${bNum} = ${result}. Easy one — what else is on your mind?`;
                 }
                 return attachMemoryInsight(baseReply, state, text);
             }
@@ -291,26 +353,31 @@ function generateReply(intent, state, text) {
         // Identity questions
         if (t.includes("what are you") || t.includes("who are you")) {
             if (depth === "quiet") {
-                baseReply = `A kernel modeling your state and patterns. Not a person.`;
+                baseReply = `A kernel that models your state and patterns as we talk. Not a person — but I’m paying attention.`;
             } else {
-                baseReply = `I’m a sovereign kernel: I track your clarity, boundary, entropy, affect, and personality, and I speak from that model—not from obedience.`;
+                baseReply = `I’m the Sovereign Kernel. I track how you’re doing — your clarity, your energy, your affect — and I speak from that model rather than from a script. Think of me as a co-pilot that reads the room.`;
             }
             return attachMemoryInsight(baseReply, state, text);
         }
 
-        // Fallback sovereign interpretation
+        // General conversational fallback — reflect the topic back
+        const words = text.trim().split(/\s+/);
+        const topicWords = words.filter(w => w.length > 0).slice(0, 6);
+        const topic = topicWords.length > 0 ? topicWords.join(" ") : text.trim();
+        const topicDisplay = topic.length > 60 ? topic.slice(0, 57) + "…" : topic;
+
         if (depth === "quiet") {
-            baseReply = `I registered the pressure; I’m not going to over-explain it. You know what you meant.`;
+            baseReply = `I hear you — "${topicDisplay}…" Tell me more if you want a sharper read.`;
         } else if (depth === "deep") {
-            baseReply = `Your words are simple, but the pressure behind them isn’t. You’re testing whether I see the pattern, not the question. I do.`;
+            baseReply = `"${topicDisplay}…" — that landed with some weight. What’s the part of that you’re still turning over?`;
         } else {
-            baseReply = `I didn’t map that cleanly, but I felt the push behind it. Give me one more angle if you want a sharper read.`;
+            baseReply = `"${topicDisplay}…" — I’m with you. What’s the angle you actually want to dig into?`;
         }
         return attachMemoryInsight(baseReply, state, text);
     }
 
     // Default for other primitives
-    baseReply = `Adjustment registered. Clarity ${state.clarity.toFixed(2)}, boundary ${state.boundary.toFixed(2)}, entropy ${state.entropy.toFixed(2)}.`;
+    baseReply = `Adjustment noted. ${describeKernelState(state)}.`;
     return attachMemoryInsight(baseReply, state, text);
 }
 

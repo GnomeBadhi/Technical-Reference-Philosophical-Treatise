@@ -69,6 +69,11 @@ body {
     margin-bottom: 10px;
 }
 
+#terminal-output .thinking {
+    opacity: 0.5;
+    font-style: italic;
+}
+
 #terminal-input {
     margin-top: 6px;
     padding: 8px;

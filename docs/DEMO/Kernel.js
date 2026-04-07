@@ -557,6 +557,9 @@ function processMessage(text) {
     // Run SE tick on manager
     se_tick(kernelState, rho, mu, sigma);
 
+    // Text-domain tick — TextKernel spec (TextTickArchitecture.md)
+    const txtAdj = (typeof txt_tick === "function") ? txt_tick(text) : null;
+
     // Operation log
     kernelState.history.push({ op: intent.toLowerCase(), text });
 
@@ -566,5 +569,6 @@ function processMessage(text) {
     // Memory pressure trajectory
     if (typeof updatePressureTrajectory === "function") updatePressureTrajectory(kernelState);
 
-    return generateReply(intent, kernelState, text);
+    const reply = generateReply(intent, kernelState, text);
+    return (typeof applyTxtAnnotation === "function") ? applyTxtAnnotation(reply, txtAdj) : reply;
 }

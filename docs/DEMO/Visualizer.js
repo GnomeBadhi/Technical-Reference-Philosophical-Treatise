@@ -58,16 +58,29 @@ function draw2D(state) {
 // Maps formal kernel state (S, L) to visual space.
 // Axes: clarity (x), boundary (y), entropy (z/depth)
 // Lifecycle L advances monotonically and is displayed as a label.
+//
+// Shows the full 4-kernel network:
+//   - manager (kernelState): large bright node
+//   - 3 influenced nodes (kernelNodes): smaller nodes
+//   - coupling lines C(x,y) between manager and each node
 // --------------------------------------------------
 
 const canvas3d = document.getElementById("viz-3d");
 const ctx3d = canvas3d.getContext("2d");
 
+function kernelToXY(state, w, h) {
+    const px = state.clarity;       // 0..1 → x position
+    const py = 1 - state.boundary;  // high boundary = top
+    return {
+        x: w * (0.15 + px * 0.65),
+        y: h * (0.15 + py * 0.65)
+    };
+}
+
 function draw3D(state) {
     if (!canvas3d) return;
 
-    // Resize to container
-    canvas3d.width = canvas3d.clientWidth;
+    canvas3d.width  = canvas3d.clientWidth;
     canvas3d.height = canvas3d.clientHeight;
 
     const w = canvas3d.width;
@@ -75,57 +88,100 @@ function draw3D(state) {
 
     ctx3d.clearRect(0, 0, w, h);
 
+    const managerPos = kernelToXY(state, w, h);
+
     // ------------------------------
-    // Kernel state → 3D coordinates
-    // Clarity (x-axis), Boundary (y-axis), Entropy (depth/size)
+    // Coupling lines: manager ↔ each node
+    // Opacity reflects coupling permeability: min(B_manager, B_node)
     // ------------------------------
+    for (const node of kernelNodes) {
+        const nodePos = kernelToXY(node, w, h);
+        const permeability = Math.min(state.boundary, node.boundary);
 
-    const px = state.clarity;           // 0..1 → x position
-    const py = 1 - state.boundary;      // 0..1 → y position (inverted: high boundary = top)
-    const pz = 1 - state.entropy;       // 0..1 → depth shading (low entropy = bright/stable)
+        ctx3d.strokeStyle = `rgba(0, 200, 255, ${0.05 + permeability * 0.25})`;
+        ctx3d.lineWidth = 1;
+        ctx3d.setLineDash([3, 5]);
+        ctx3d.beginPath();
+        ctx3d.moveTo(managerPos.x, managerPos.y);
+        ctx3d.lineTo(nodePos.x, nodePos.y);
+        ctx3d.stroke();
+        ctx3d.setLineDash([]);
+    }
 
-    // Project 3D → 2D with isometric-style offset
-    const x = w * (0.15 + px * 0.65);
-    const y = h * (0.15 + py * 0.65);
+    // ------------------------------
+    // Draw 3 influenced nodes
+    // ------------------------------
+    const nodeColors = [
+        "rgba(80, 200, 255,",
+        "rgba(160, 100, 255,",
+        "rgba(255, 180, 60,"
+    ];
 
-    // Radius grows with structural coherence (low entropy, high clarity)
-    const radius = 8 + pz * 10;
+    for (let i = 0; i < kernelNodes.length; i++) {
+        const node = kernelNodes[i];
+        const pos  = kernelToXY(node, w, h);
+        const pz   = 1 - node.entropy;
+        const shade = 0.2 + pz * 0.45;
+        const radius = 5 + pz * 6;
+        const color = nodeColors[i];
 
-    // Depth shading: high purity/low entropy → brighter
+        ctx3d.fillStyle = `${color}${shade})`;
+        ctx3d.beginPath();
+        ctx3d.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+        ctx3d.fill();
+
+        // Node lifecycle ring
+        const lRing = radius + 3 + Math.min(node.lifecycle * 8, 20);
+        ctx3d.strokeStyle = `${color}${0.05 + Math.min(node.lifecycle * 0.03, 0.12)})`;
+        ctx3d.lineWidth = 1;
+        ctx3d.beginPath();
+        ctx3d.arc(pos.x, pos.y, lRing, 0, Math.PI * 2);
+        ctx3d.stroke();
+
+        // Node id label
+        ctx3d.fillStyle = `${color}0.7)`;
+        ctx3d.font = "11px JetBrains Mono";
+        ctx3d.fillText(node.id, pos.x + radius + 3, pos.y + 4);
+    }
+
+    // ------------------------------
+    // Draw managing kernel (manager)
+    // ------------------------------
+    const pz = 1 - state.entropy;
     const depthShade = 0.2 + pz * 0.5;
+    const radius = 10 + pz * 10;
 
-    // ------------------------------
-    // Draw kernel state point
-    // ------------------------------
-
+    ctx3d.shadowColor = "rgba(0, 255, 200, 0.25)";
+    ctx3d.shadowBlur = 16;
     ctx3d.fillStyle = `rgba(0, 255, 200, ${depthShade})`;
     ctx3d.beginPath();
-    ctx3d.arc(x, y, radius, 0, Math.PI * 2);
+    ctx3d.arc(managerPos.x, managerPos.y, radius, 0, Math.PI * 2);
     ctx3d.fill();
+    ctx3d.shadowBlur = 0;
 
-    // Soft glow
-    ctx3d.shadowColor = "rgba(0, 255, 200, 0.2)";
-    ctx3d.shadowBlur = 14;
-
-    // Lifecycle trail — a faint ring showing how far L has advanced
+    // Manager lifecycle ring
     const lifecycleRadius = radius + 4 + Math.min(state.lifecycle * 12, 30);
     ctx3d.strokeStyle = `rgba(0, 255, 200, ${0.08 + Math.min(state.lifecycle * 0.04, 0.18)})`;
     ctx3d.lineWidth = 1;
     ctx3d.beginPath();
-    ctx3d.arc(x, y, lifecycleRadius, 0, Math.PI * 2);
+    ctx3d.arc(managerPos.x, managerPos.y, lifecycleRadius, 0, Math.PI * 2);
     ctx3d.stroke();
 
+    // Manager label
+    ctx3d.fillStyle = "rgba(0, 255, 200, 0.75)";
+    ctx3d.font = "11px JetBrains Mono";
+    ctx3d.fillText("manager", managerPos.x + radius + 3, managerPos.y + 4);
+
     // ------------------------------
-    // Labels
+    // State labels (manager)
     // ------------------------------
 
-    ctx3d.shadowBlur = 0;
     ctx3d.fillStyle = "rgba(200, 255, 240, 0.8)";
     ctx3d.font = "14px JetBrains Mono";
 
-    ctx3d.fillText(`Clarity:   ${state.clarity.toFixed(2)}`,  10, 20);
-    ctx3d.fillText(`Boundary:  ${state.boundary.toFixed(2)}`, 10, 40);
-    ctx3d.fillText(`Entropy:   ${state.entropy.toFixed(2)}`,  10, 60);
+    ctx3d.fillText(`Clarity:   ${state.clarity.toFixed(2)}`,   10, 20);
+    ctx3d.fillText(`Boundary:  ${state.boundary.toFixed(2)}`,  10, 40);
+    ctx3d.fillText(`Entropy:   ${state.entropy.toFixed(2)}`,   10, 60);
     ctx3d.fillText(`Lifecycle: ${state.lifecycle.toFixed(4)}`, 10, h - 10);
 }
 

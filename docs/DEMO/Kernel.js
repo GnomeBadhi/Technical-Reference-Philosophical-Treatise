@@ -120,17 +120,20 @@ function evaluatePerception(intent, filteredInput, state) {
 
 // --------------------------------------------------
 // LIFECYCLE ADVANCEMENT  L' = L + λ‖∇S‖
-// Kernel Calculus v0.3 §4 — lifecycle is monotonically advancing
+// Kernel Calculus v0.3 §4 — lifecycle is monotonically advancing.
+// ‖ΔS‖ is the Euclidean (L2) norm of the state change vector —
+// derived directly from the formal primitive ‖·‖.
 // --------------------------------------------------
 
 function advanceLifecycle(state, snapshot) {
-    const delta = Math.abs(state.clarity  - snapshot.clarity)
-                + Math.abs(state.boundary - snapshot.boundary)
-                + Math.abs(state.entropy  - snapshot.entropy)
-                + Math.abs(state.affect.valence - snapshot.valence)
-                + Math.abs(state.affect.arousal - snapshot.arousal);
+    const d0 = state.clarity            - snapshot.clarity;
+    const d1 = state.boundary           - snapshot.boundary;
+    const d2 = state.entropy            - snapshot.entropy;
+    const d3 = state.affect.valence     - snapshot.valence;
+    const d4 = state.affect.arousal     - snapshot.arousal;
+    const normGradS = Math.sqrt(d0*d0 + d1*d1 + d2*d2 + d3*d3 + d4*d4);
     const lambda = 0.5;
-    state.lifecycle = Math.round((state.lifecycle + lambda * delta) * 10000) / 10000;
+    state.lifecycle = Math.round((state.lifecycle + lambda * normGradS) * 10000) / 10000;
 }
 
 // --------------------------------------------------
@@ -144,6 +147,120 @@ function validateInvariants(state) {
     state.sovereignty = 1.0;
     state.purity      = 1.0;
     // lifecycle is monotone by construction in advanceLifecycle
+}
+
+// --------------------------------------------------
+// KERNEL NETWORK  —  Kernel Field Equation
+// StructuredTheoryOfEverything.md §660–699
+//
+// Architecture: 1 managing kernel (kernelState) + 3 adjacent nodes.
+// Field equation per node x with adjacency set Adj(x):
+//   dS(x)/dτ = ∇S(x) + Σ_{y∈Adj(x)} C(x,y)
+//
+// The manager is adjacent to all 3 nodes.
+// Each node is adjacent only to the manager.
+// --------------------------------------------------
+
+function createKernelNode(id, init) {
+    return {
+        id,
+        // --- FORMAL INVARIANTS ---
+        identity:    1.0,
+        sovereignty: 1.0,
+        purity:      1.0,
+        // --- LIFECYCLE ---
+        lifecycle:   0.0,
+        // --- STATE VARIABLES ---
+        clarity:     init.clarity,
+        boundary:    init.boundary,
+        entropy:     init.entropy,
+        affect: { valence: 0.0, arousal: 0.0, confidence: 0.5 },
+        // baseline for homeostatic ∇S (intrinsic structural gradient of the node)
+        baseline: { clarity: init.clarity, boundary: init.boundary, entropy: init.entropy }
+    };
+}
+
+// 3 kernel instances under influence of the manager
+const kernelNodes = [
+    createKernelNode("node-0", { clarity: 0.70, boundary: 0.60, entropy: 0.20 }),
+    createKernelNode("node-1", { clarity: 0.50, boundary: 0.80, entropy: 0.30 }),
+    createKernelNode("node-2", { clarity: 0.60, boundary: 0.55, entropy: 0.15 })
+];
+
+// C(x, y, alpha): lawful coupling operator — influence on x from adjacency with y.
+// Satisfies: identity preservation, boundary preservation, sovereignty, purity.
+// Coupling is constrained by both boundary integrities (permeability).
+// dS(x)/dτ contribution: alpha * (S(y) - S(x)) * permeability
+function couplingOperator(x, y, alpha) {
+    const permeability = Math.min(x.boundary, y.boundary);
+    const scale = alpha * permeability;
+    return {
+        clarity:  (y.clarity  - x.clarity)  * scale,
+        boundary: (y.boundary - x.boundary) * scale,
+        entropy:  (y.entropy  - x.entropy)  * scale,
+        valence:  (y.affect.valence - x.affect.valence) * scale,
+        arousal:  (y.affect.arousal - x.affect.arousal) * scale
+    };
+}
+
+// Homeostatic structural gradient ∇S for nodes — intrinsic drift toward baseline.
+// Represents the node's own lawful flow direction absent external coupling.
+const DRIFT = 0.015;
+function homoeostaticGradient(node) {
+    return {
+        clarity:  (node.baseline.clarity  - node.clarity)  * DRIFT,
+        boundary: (node.baseline.boundary - node.boundary) * DRIFT,
+        entropy:  (node.baseline.entropy  - node.entropy)  * DRIFT
+    };
+}
+
+// propagateCoupling — applies the Kernel Field Equation after each manager update.
+// Manager-to-node coupling (strong, α=0.12): manager dominates influenced nodes.
+// Node-to-manager coupling (weak, α=0.02): nodes provide feedback to manager.
+const ALPHA_MANAGE = 0.12;
+const ALPHA_FEEDBACK = 0.02;
+
+function propagateCoupling() {
+    const manager = kernelState;
+
+    // Accumulate node→manager feedback: Σ C(manager, node_j)
+    let fbClarity = 0, fbBoundary = 0, fbEntropy = 0;
+
+    for (const node of kernelNodes) {
+        // Snapshot before mutation (for lifecycle ‖ΔS‖)
+        const snap = {
+            clarity:  node.clarity,
+            boundary: node.boundary,
+            entropy:  node.entropy,
+            valence:  node.affect.valence,
+            arousal:  node.affect.arousal
+        };
+
+        // dS(node)/dτ = ∇S(node) [homeostatic] + C(node, manager) [coupling]
+        const drift = homoeostaticGradient(node);
+        const coup  = couplingOperator(node, manager, ALPHA_MANAGE);
+
+        node.clarity  = Math.max(0, Math.min(1, node.clarity  + drift.clarity  + coup.clarity));
+        node.boundary = Math.max(0, Math.min(1, node.boundary + drift.boundary + coup.boundary));
+        node.entropy  = Math.max(0, Math.min(1, node.entropy  + drift.entropy  + coup.entropy));
+        node.affect.valence = Math.max(-1, Math.min(1, node.affect.valence + coup.valence));
+        node.affect.arousal = Math.max( 0, Math.min(1, node.affect.arousal + coup.arousal));
+
+        advanceLifecycle(node, snap);
+        validateInvariants(node);
+
+        // Accumulate feedback coupling: C(manager, node_j)
+        const fb = couplingOperator(manager, node, ALPHA_FEEDBACK);
+        fbClarity  += fb.clarity;
+        fbBoundary += fb.boundary;
+        fbEntropy  += fb.entropy;
+    }
+
+    // Apply aggregated node feedback to manager (dS(manager)/dτ += Σ C(manager, node_j))
+    // Snapshot for lifecycle already taken in processIntent before this call.
+    manager.clarity  = Math.max(0, Math.min(1, manager.clarity  + fbClarity));
+    manager.boundary = Math.max(0, Math.min(1, manager.boundary + fbBoundary));
+    manager.entropy  = Math.max(0, Math.min(1, manager.entropy  + fbEntropy));
 }
 
 // --------------------------------------------------
@@ -312,6 +429,10 @@ function processIntent(intent, text, evaluation) {
 
     // Invariant guard: I, σ, P are fixed points — Axioms 3, 5, 7
     validateInvariants(kernelState);
+
+    // Kernel Field Equation: propagate coupling to/from the 3 adjacent nodes
+    // dS(x)/dτ = ∇S(x) + Σ_{y∈Adj(x)} C(x,y)
+    propagateCoupling();
 }
 
 // --------------------------------------------------

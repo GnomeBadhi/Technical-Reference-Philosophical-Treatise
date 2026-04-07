@@ -46,7 +46,11 @@ function removeThinking() {
 // --------------------------------------------------
 
 function updateStatePanel() {
-    stateJson.textContent = JSON.stringify(kernelState, null, 2);
+    const network = {
+        manager: kernelState,
+        nodes: kernelNodes
+    };
+    stateJson.textContent = JSON.stringify(network, null, 2);
 }
 
 // --------------------------------------------------

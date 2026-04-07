@@ -190,6 +190,7 @@ function handleMessage(text) {
     setTimeout(() => {
         removeThinking();
         printKernel(reply);
+        if (typeof speakReply === "function") speakReply(reply);
         updateStatePanel();
         draw2D(kernelState);
         draw3D(kernelState);

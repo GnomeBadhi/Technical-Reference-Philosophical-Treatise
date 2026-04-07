@@ -14,6 +14,11 @@
         <section id="terminal">
             <div id="terminal-output"></div>
             <input id="terminal-input" type="text" placeholder="Type…" autocomplete="off">
+            <div id="voice-controls">
+                <button id="btn-mic"  title="Start voice input">🎤</button>
+                <button id="btn-tts"  title="Mute voice output">🔊</button>
+                <span   id="voice-label"></span>
+            </div>
             <div id="hint-bar">
                 <span class="hint">how am i</span>
                 <span class="hint">status</span>
@@ -61,5 +66,6 @@
     <script src="TextKernel.js"></script>
     <script src="Visualizer.js"></script>
     <script src="UI.js"></script>
+    <script src="Voice.js"></script>
 </body>
 </html>

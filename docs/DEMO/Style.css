@@ -136,3 +136,9 @@ body {
     display: block;
     background: #000;
 }
+#viz-2d, #viz-3d {
+  width: 100%;
+  height: 200px;
+  background-color: #000;
+  display: block;
+}

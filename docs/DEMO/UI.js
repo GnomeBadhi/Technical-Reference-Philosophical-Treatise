@@ -21,30 +21,27 @@ addMessage("system", "Kernel online. State ready.");
 // Input handler
 if (input) {
     input.addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-            const text = input.value.trim();
-            if (!text) return;
+    if (e.key === "Enter") {
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = "";
 
-            input.value = "";
+        addMessage("user", text);
 
-            // User message
-            addMessage("user", text);
+        updateAffectFromText(text);
+        updatePersonalityFromText(text);
 
-            // Kernel processing
-            const intent = parseIntent(text);
-            const reply = processIntent(intent, text);
+        const intent = parseIntent(text);
+        processIntent(intent, text);          // now just mutates state + history
+        const reply = generateReply(intent, kernelState, text);
 
-            // System response
-            addMessage("system", reply);
+        addMessage("system", reply);
 
-            // Update state panel
-            statePanel.textContent = JSON.stringify(kernelState, null, 2);
-
-            // Redraw visualizations
-            draw2D(kernelState);
-            draw3D(kernelState);
-        }
-    });
+        statePanel.textContent = JSON.stringify(kernelState, null, 2);
+        draw2D(kernelState);
+        draw3D(kernelState);
+    }
+});
 }
 
 // Initial draw

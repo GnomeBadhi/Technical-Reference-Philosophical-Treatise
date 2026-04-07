@@ -1,10 +1,18 @@
+/* -----------------------------
+   Global
+----------------------------- */
 body {
     margin: 0;
     background: #0e0e0e;
     color: #e0e0e0;
     font-family: monospace;
+    height: 100vh;
+    overflow: hidden;
 }
 
+/* -----------------------------
+   Grid Layout
+----------------------------- */
 #layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -12,12 +20,22 @@ body {
     height: 100vh;
 }
 
-#terminal, #state-panel, #canvas-panel, #webgl-panel {
+/* -----------------------------
+   Panels
+----------------------------- */
+#terminal,
+#state-panel,
+#canvas-panel,
+#webgl-panel {
     border: 1px solid #333;
     padding: 10px;
     overflow: hidden;
+    box-sizing: border-box;
 }
 
+/* -----------------------------
+   Terminal
+----------------------------- */
 #terminal {
     display: flex;
     flex-direction: column;
@@ -27,6 +45,10 @@ body {
     flex: 1;
     overflow-y: auto;
     white-space: pre-wrap;
+    background: #000;
+    color: #0f0;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 #terminal-input {
@@ -35,10 +57,48 @@ body {
     border: none;
     padding: 8px;
     font-size: 16px;
+    outline: none;
 }
 
+/* -----------------------------
+   State JSON Panel
+----------------------------- */
+#state-json {
+    background: #000;
+    color: #0f0;
+    padding: 10px;
+    overflow-y: auto;
+    height: calc(100% - 40px);
+    box-sizing: border-box;
+}
+
+/* -----------------------------
+   Canvas Elements
+----------------------------- */
 canvas {
     width: 100%;
     height: 100%;
+    min-height: 200px;      /* prevents collapse */
+    display: block;         /* removes inline gaps */
     background: #111;
+    box-sizing: border-box;
+}
+
+/* -----------------------------
+   Mobile Fixes
+----------------------------- */
+@media (max-width: 800px) {
+    #layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto;
+        height: auto;
+    }
+
+    canvas {
+        min-height: 30vh;
+    }
+
+    body {
+        overflow-y: auto;
+    }
 }

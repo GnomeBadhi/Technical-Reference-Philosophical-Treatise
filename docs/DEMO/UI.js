@@ -230,19 +230,21 @@ function handleMessage(text) {
 
     const delay = 300 + Math.random() * 300;
     setTimeout(() => {
-        removeThinking();
-        printKernel(finalReply);
+        try {
+            removeThinking();
+            printKernel(finalReply);
 
-        if (typeof speakReply === "function") speakReply(finalReply);
+            if (typeof speakReply === "function") speakReply(finalReply);
 
-        updateStatePanel();
-        draw2D(kernelState);
-        draw3D(kernelState);
+            updateStatePanel();
+            draw2D(kernelState);
+            draw3D(kernelState);
 
-        logTick(kernelState, txtState, txtAdj);
-
-        termIn.disabled = false;
-        termIn.focus();
+            logTick(kernelState, txtState, txtAdj);
+        } finally {
+            termIn.disabled = false;
+            termIn.focus();
+        }
     }, delay);
 }
 
@@ -256,17 +258,6 @@ termIn.addEventListener("keydown", (e) => {
         termIn.value = "";
         handleMessage(text);
     }
-});
-
-// --------------------------------------------------
-// HINT BAR
-// --------------------------------------------------
-
-document.querySelectorAll(".hint").forEach((btn) => {
-    btn.addEventListener("click", () => {
-        termIn.value = btn.textContent;
-        termIn.focus();
-    });
 });
 
 // --------------------------------------------------

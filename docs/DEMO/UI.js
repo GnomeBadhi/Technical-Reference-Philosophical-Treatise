@@ -221,14 +221,8 @@ function handleMessage(text) {
 
     printUser(text);
 
-    // Text kernel tick
-    const txtAdj = txt_tick(text);
-
-    // Main kernel tick
-    const reply = processMessage(text);
-
-    // Annotation
-    const finalReply = applyTxtAnnotation(reply, txtAdj);
+    // Kernel.js handles both SE tick + TextKernel tick + annotation
+const finalReply = processMessage(text);
 
     // Thinking indicator
     termIn.disabled = true;

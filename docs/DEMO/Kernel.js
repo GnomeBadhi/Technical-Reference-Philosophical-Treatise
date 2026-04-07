@@ -54,3 +54,14 @@ function processIntent(intent) {
     kernelState.history.push(result);
     return { intent, ...result };
 }
+const kernelState = {
+    clarity: 0.8,
+    boundary: 0.75,
+    entropy: 0.12,
+    history: [],
+    affect: {
+        valence: 0.0,   // -1 (very negative) to +1 (very positive)
+        arousal: 0.0,   // 0 (calm) to 1 (activated)
+        confidence: 0.5 // 0–1, how “sure” we are
+    }
+};

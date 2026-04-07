@@ -79,14 +79,19 @@ function buildPrimitivesGrid(state) {
     }
 }
 
+// Regime threshold constants — mirror Kernel.js §15.5
+const AUTONOMY_CRISIS_THRESHOLD  = 0.2;  // |RA-SA| above this → autonomy crisis
+const FLOURISHING_CE_THRESHOLD   = 0.7;  // CE must be ≥ this for flourishing
+const FLOURISHING_AI_THRESHOLD   = 0.7;  // AI must be ≥ this for flourishing
+
 function updateRegimeBadge(state) {
     const ra = state.RA, sa = state.SA, ce = state.CE, ai = state.AI;
     let label, cls;
     if (state.recoveryMode) {
         label = "RECOVERY"; cls = "regime-recovery";
-    } else if (Math.abs(ra - sa) > 0.2) {
+    } else if (Math.abs(ra - sa) > AUTONOMY_CRISIS_THRESHOLD) {
         label = "AUTONOMY CRISIS"; cls = "regime-crisis";
-    } else if (ce >= 0.7 && ai >= 0.7) {
+    } else if (ce >= FLOURISHING_CE_THRESHOLD && ai >= FLOURISHING_AI_THRESHOLD) {
         label = "FLOURISHING"; cls = "regime-flourishing";
     } else {
         label = "STRESS-ADAPTED"; cls = "regime-stress";

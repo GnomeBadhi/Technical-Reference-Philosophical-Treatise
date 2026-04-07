@@ -1,17 +1,17 @@
-// -----------------------------
-// Memory System
-// -----------------------------
+// --------------------------------------------------
+// SOVEREIGN MEMORY SYSTEM
+// --------------------------------------------------
 
 const kernelMemory = {
-    shortTerm: [],        // last 5 exchanges
-    themes: {},           // recurring words/phrases
-    pressureTrajectory: [], // entropy/arousal over time
+    shortTerm: [],          // last 5 user messages
+    themes: {},             // recurring words
+    pressureTrajectory: [], // entropy + arousal over time
     maxShort: 5
 };
 
-// -----------------------------
-// Update Short-Term Memory
-// -----------------------------
+// --------------------------------------------------
+// SHORT-TERM MEMORY
+// --------------------------------------------------
 
 function updateShortTerm(text) {
     kernelMemory.shortTerm.push(text);
@@ -20,9 +20,9 @@ function updateShortTerm(text) {
     }
 }
 
-// -----------------------------
-// Update Themes
-// -----------------------------
+// --------------------------------------------------
+// THEMATIC MEMORY
+// --------------------------------------------------
 
 function updateThemes(text) {
     const words = text.toLowerCase().split(/\W+/);
@@ -33,9 +33,9 @@ function updateThemes(text) {
     }
 }
 
-// -----------------------------
-// Update Pressure Trajectory
-// -----------------------------
+// --------------------------------------------------
+// PRESSURE TRAJECTORY MEMORY
+// --------------------------------------------------
 
 function updatePressureTrajectory(state) {
     kernelMemory.pressureTrajectory.push({
@@ -49,9 +49,9 @@ function updatePressureTrajectory(state) {
     }
 }
 
-// -----------------------------
-// Memory-Based Insights
-// -----------------------------
+// --------------------------------------------------
+// MEMORY-BASED INSIGHT GENERATION
+// --------------------------------------------------
 
 function generateMemoryInsight(state, text) {
     const insights = [];
@@ -92,9 +92,9 @@ function generateMemoryInsight(state, text) {
     return insights.join(" ");
 }
 
-// -----------------------------
-// Simple Text Similarity
-// -----------------------------
+// --------------------------------------------------
+// TEXT SIMILARITY (simple, robust)
+// --------------------------------------------------
 
 function textSimilarity(a, b) {
     const wa = a.toLowerCase().split(/\W+/);

@@ -53,6 +53,16 @@ const PRIMITIVES = {
 };
 
 // --------------------------------------------------
+// CONVERSATION CONTEXT  — multi-turn threading
+// --------------------------------------------------
+
+const conversationContext = {
+    turnCount:          0,
+    lastKernelQuestion: null,   // the closing question from the last reply
+    lastUserText:       null    // the user message from the last turn
+};
+
+// --------------------------------------------------
 // SE HELPERS
 // --------------------------------------------------
 
@@ -320,6 +330,38 @@ function attachMemoryInsight(reply, state, text) {
 }
 
 // --------------------------------------------------
+// CONVERSATION HELPERS
+// --------------------------------------------------
+
+// Returns the top non-stopword theme that has appeared >= 2 times.
+const THEME_STOPWORDS = new Set([
+    "the","and","but","for","you","that","this","with","are","was","not",
+    "have","what","just","can","its","from","they","your","about","into",
+    "more","also","some","like","been","had","has","were","than","then",
+    "them","their","will","would","could","should","get","got","let","going",
+    "feel","feels","feeling","know","think","want","need","really","very"
+]);
+
+function getTopTheme() {
+    let topWord = null, topCount = 1;
+    for (const [w, count] of Object.entries(kernelMemory.themes)) {
+        if (!THEME_STOPWORDS.has(w) && w.length >= 4 && count > topCount) {
+            topWord = w; topCount = count;
+        }
+    }
+    return topWord;
+}
+
+// Extracts the last interrogative sentence from a reply string.
+function extractClosingQuestion(reply) {
+    const sentences = reply.split(/(?<=[.!?])\s+/);
+    for (let i = sentences.length - 1; i >= 0; i--) {
+        if (sentences[i].includes("?")) return sentences[i].trim();
+    }
+    return null;
+}
+
+// --------------------------------------------------
 // SOVEREIGN INTEGRATOR REPLY  — C2 STYLE
 // --------------------------------------------------
 
@@ -383,13 +425,82 @@ function generateReply(intent, state, text) {
         if (regime === "flourishing") {
             return "You’re steady and resourced right now — CE and AI are supporting you.";
         }
-        return "I’m with you. You’re carrying something, but you’re still moving.";
+        return "I\u2019m with you. You\u2019re carrying something, but you\u2019re still moving.";
+    }
+
+    // Picks up the conversational thread from the prior exchange.
+    // Returns null on the very first message.
+    function conversationOpening() {
+        if (conversationContext.turnCount === 0) return null;
+
+        const prior = conversationContext.lastUserText;
+        if (!prior) return null;
+
+        const priorWords = prior.trim().split(/\s+/);
+        const snippet = priorWords.slice(0, 7).join(" ") +
+                        (priorWords.length > 7 ? "\u2026" : "");
+
+        // If we asked a question last time, acknowledge the answer
+        if (conversationContext.lastKernelQuestion) {
+            return `"${snippet}" \u2014 I've got that.`;
+        }
+
+        // If a theme is repeating, call it out
+        const theme = getTopTheme();
+        if (theme && conversationContext.turnCount >= 2) {
+            return `You keep coming back to "${theme}" \u2014 that's not random.`;
+        }
+
+        return `"${snippet}" \u2014 I'm tracking that.`;
+    }
+
+    // Returns a context-sensitive closing question.
+    function followUpQuestion() {
+        const t = text.toLowerCase();
+
+        if (t.match(/\b(work|job|project|deadline|boss|colleague|career)\b/))
+            return "What\u2019s weighing heaviest about that right now?";
+        if (t.match(/\b(family|parent|mother|father|sibling|partner|relationship|friend)\b/))
+            return "What does that relationship need from you right now?";
+        if (t.match(/\b(body|sleep|tired|pain|health|sick|rest)\b/))
+            return "What is your body asking for?";
+        if (t.match(/\b(decide|decision|choose|choice|option|dilemma)\b/))
+            return "What does the clearest part of you already know?";
+        if (t.match(/\b(fear|scared|afraid|worry|dread)\b/))
+            return "Can you name the version of this you\u2019re trying not to think about?";
+        if (t.match(/\b(angry|anger|frustrat|resent)\b/))
+            return "What\u2019s underneath the frustration?";
+        if (t.match(/\b(sad|grief|loss|miss|mourn)\b/))
+            return "What does the grief need right now \u2014 to be held, or to move?";
+        if (t.match(/\b(goal|want|wish|hope|dream|future)\b/))
+            return "What\u2019s the first real step \u2014 not the ideal, the actual?";
+        if (t.match(/\b(fail|mistake|wrong|regret|guilt|shame)\b/))
+            return "Can you separate what happened from who you are?";
+
+        // State-sensitive fallbacks
+        if (state.CE < 0.4)
+            return "What\u2019s one thing you could put down right now?";
+        if (state.AI < 0.5)
+            return "What would feel true to you here, regardless of what anyone expects?";
+        if (Math.abs(state.RA - state.SA) > 0.2)
+            return "Where do you feel most split on this?";
+
+        // Rotating generic questions so each turn feels different
+        const fallbacks = [
+            "What part of that feels most alive for you right now?",
+            "What are you not saying yet?",
+            "What does the most honest version of you think about this?",
+            "Where does that leave you right now?",
+            "What would need to shift for you to feel more settled with this?",
+            "Is there something you already know but haven\u2019t let yourself say?"
+        ];
+        return fallbacks[conversationContext.turnCount % fallbacks.length];
     }
 
     // INQUIRE_STATE
     if (intent === PRIMITIVES.INQUIRE_STATE) {
         return attachMemoryInsight(
-            `${regimeOpening()} What I’m reading: ${emotionalRead()}.`,
+            `${regimeOpening()} What I\u2019m reading: ${emotionalRead()}.`,
             state, text
         );
     }
@@ -397,60 +508,78 @@ function generateReply(intent, state, text) {
     // REPORT_STATUS
     if (intent === PRIMITIVES.REPORT_STATUS) {
         return attachMemoryInsight(
-            `${regimeOpening()} Here’s the shape of things: RA ${state.RA.toFixed(2)}, SA ${state.SA.toFixed(2)}, CE ${state.CE.toFixed(2)}, AI ${state.AI.toFixed(2)}. EP is ${state.EP.toFixed(3)}.`,
+            `${regimeOpening()} Here\u2019s the shape of things: RA ${state.RA.toFixed(2)}, SA ${state.SA.toFixed(2)}, CE ${state.CE.toFixed(2)}, AI ${state.AI.toFixed(2)}. EP is ${state.EP.toFixed(3)}.`,
             state, text
         );
     }
 
     // REFLECT
     if (intent === PRIMITIVES.REFLECT) {
+        const opening = conversationOpening();
+        const prefix = opening ? opening + " " : `${regimeOpening()} `;
         return attachMemoryInsight(
-            `${regimeOpening()} From your words: ${textDomainRead()}. From your state: ${emotionalRead()}. I’m tracking both.`,
+            `${prefix}From your words: ${textDomainRead()}. From your state: ${emotionalRead()}. I\u2019m tracking both.`,
             state, text
         );
     }
 
     // SOOTHE
     if (intent === PRIMITIVES.SOOTHE) {
+        const opening = conversationOpening();
+        const prefix = opening ? opening + " " : "";
         if (state.CE < 0.4) {
             return attachMemoryInsight(
-                `I feel how thin your energy is. Nothing needs to be solved right now. Just stay with me — slowly.`,
+                `${prefix}I feel how thin your energy is. Nothing needs to be solved right now. Just stay with me \u2014 slowly.`,
                 state, text
             );
         }
         return attachMemoryInsight(
-            `You’re under load, but not collapsing. I’m here with you. Let’s take this one breath at a time.`,
+            `${prefix}You\u2019re under load, but not collapsing. I\u2019m here with you. Let\u2019s take this one breath at a time.`,
             state, text
         );
     }
 
     // ACTIVATE
     if (intent === PRIMITIVES.ACTIVATE) {
+        const opening = conversationOpening();
+        const prefix = opening ? opening + " " : "";
         if (state.CE < 0.35) {
             return attachMemoryInsight(
-                `You want movement, but CE is too low to push. Let’s find the smallest possible step — something that doesn’t cost you.`,
+                `${prefix}You want movement, but CE is too low to push. Let\u2019s find the smallest possible step \u2014 something that doesn\u2019t cost you.`,
                 state, text
             );
         }
         return attachMemoryInsight(
-            `You’re stuck, but not frozen. What’s one tiny thing that feels doable from here?`,
+            `${prefix}You\u2019re stuck, but not frozen. What\u2019s one tiny thing that feels doable from here?`,
             state, text
         );
     }
 
-    // UNKNOWN
-    const words = text.trim().split(/\s+/);
-    const topic = words.slice(0, 6).join(" ");
-    const topicDisplay = topic.length > 60 ? topic.slice(0, 57) + "…" : topic;
+    // UNKNOWN \u2014 multi-turn aware
+    const opening = conversationOpening();
+    const stateRead = emotionalRead();
+    const txtRead = textDomainRead();
+    const question = followUpQuestion();
 
-    return attachMemoryInsight(
-        `${regimeOpening()} "${topicDisplay}…" — I’m hearing you. ${emotionalRead()}. ${textDomainRead() ? "And from your words: " + textDomainRead() + "." : ""} What part of that feels most alive for you right now?`,
-        state, text
-    );
+    const parts = [];
+    if (opening) {
+        parts.push(opening);
+        // Lighter state read when we already have a thread opener
+        const cap = stateRead.charAt(0).toUpperCase() + stateRead.slice(1);
+        parts.push(cap + ".");
+    } else {
+        // First message: use full regime opening + explicit state read
+        parts.push(regimeOpening());
+        parts.push(`What I\u2019m reading: ${stateRead}.`);
+    }
+    if (txtRead) parts.push(`From your words: ${txtRead}.`);
+    parts.push(question);
+
+    return attachMemoryInsight(parts.join(" "), state, text);
 }
 
 // --------------------------------------------------
-// MAIN PROCESS  — called by UI.js on each user message
+// MAIN PROCESS  \u2014 called by UI.js on each user message
 // Coordinates the SE tick and the Text-domain tick (TextKernel.js).
 // Returns { reply, txtAdj } so UI.js can log and annotate.
 // --------------------------------------------------
@@ -462,7 +591,7 @@ function processMessage(text) {
     if (typeof updateShortTerm === "function") updateShortTerm(text);
     if (typeof updateThemes    === "function") updateThemes(text);
 
-    // Text-domain tick (TextKernel.js) — must run before generateReply reads txtState
+    // Text-domain tick (TextKernel.js) \u2014 must run before generateReply reads txtState
     const txtAdj = txt_tick(text);
 
     se_tick(kernelState, rho, mu, sigma);
@@ -474,5 +603,12 @@ function processMessage(text) {
     if (typeof updatePressureTrajectory === "function") updatePressureTrajectory(kernelState);
 
     const reply = generateReply(intent, kernelState, text);
-    return { reply: applyTxtAnnotation(reply, txtAdj), txtAdj };
+    const annotatedReply = applyTxtAnnotation(reply, txtAdj);
+
+    // Update conversation context for the next turn
+    conversationContext.lastKernelQuestion = extractClosingQuestion(reply);
+    conversationContext.lastUserText       = text;
+    conversationContext.turnCount         += 1;
+
+    return { reply: annotatedReply, txtAdj };
 }

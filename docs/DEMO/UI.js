@@ -1,12 +1,15 @@
 // -----------------------------
-// UI Wiring
+// UI Elements
 // -----------------------------
 
 const input = document.getElementById("terminal-input");
 const output = document.getElementById("terminal-output");
 const statePanel = document.getElementById("state-json");
 
-// Chat-style message renderer
+// -----------------------------
+// Chat Message Renderer
+// -----------------------------
+
 function addMessage(sender, text) {
     const msg = document.createElement("div");
     msg.className = "msg " + sender;
@@ -18,33 +21,48 @@ function addMessage(sender, text) {
 // Initial system message
 addMessage("system", "Kernel online. State ready.");
 
-// Input handler
+
+// -----------------------------
+// Input Handler
+// -----------------------------
+
 if (input) {
     input.addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-        const text = input.value.trim();
-        if (!text) return;
-        input.value = "";
+        if (e.key === "Enter") {
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = "";
 
-        addMessage("user", text);
+            // User message
+            addMessage("user", text);
 
-        updateAffectFromText(text);
-        updatePersonalityFromText(text);
+            // Update kernel models
+            updateAffectFromText(text);
+            updatePersonalityFromText(text);
 
-        const intent = parseIntent(text);
-        processIntent(intent, text);          // now just mutates state + history
-        const reply = generateReply(intent, kernelState, text);
+            // Parse → mutate → generate reply
+            const intent = parseIntent(text);
+            processIntent(intent, text);
+            const reply = generateReply(intent, kernelState, text);
 
-        addMessage("system", reply);
+            // System reply
+            addMessage("system", reply);
 
-        statePanel.textContent = JSON.stringify(kernelState, null, 2);
-        draw2D(kernelState);
-        draw3D(kernelState);
-    }
-});
+            // Update state panel
+            statePanel.textContent = JSON.stringify(kernelState, null, 2);
+
+            // Redraw visualizations
+            draw2D(kernelState);
+            draw3D(kernelState);
+        }
+    });
 }
 
-// Initial draw
+
+// -----------------------------
+// Initial Draw
+// -----------------------------
+
 statePanel.textContent = JSON.stringify(kernelState, null, 2);
 draw2D(kernelState);
 draw3D(kernelState);

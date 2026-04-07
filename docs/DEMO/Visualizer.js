@@ -89,3 +89,7 @@ function draw3D(state) {
     ctx3d.fillText(`Abstraction: ${py.toFixed(2)}`, 10, 40);
     ctx3d.fillText(`Intensity: ${pz.toFixed(2)}`, 10, 60);
 }
+window.addEventListener("load", () => {
+  draw2D(kernelState);
+  draw3D(kernelState);
+});

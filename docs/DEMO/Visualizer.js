@@ -2,65 +2,90 @@
 // 2D Visualization
 // -----------------------------
 
-const canvas2d = document.getElementById("canvas2d");
+const canvas2d = document.getElementById("viz-2d");
 const ctx2d = canvas2d.getContext("2d");
 
-function resize2D() {
+function draw2D(state) {
+    if (!canvas2d) return;
+
     canvas2d.width = canvas2d.clientWidth;
     canvas2d.height = canvas2d.clientHeight;
-}
-
-function draw2D(state) {
-    if (!canvas2d || !ctx2d) return;
-    resize2D();
 
     const w = canvas2d.width;
     const h = canvas2d.height;
 
     ctx2d.clearRect(0, 0, w, h);
 
-    // background
-    ctx2d.fillStyle = "#111";
-    ctx2d.fillRect(0, 0, w, h);
+    // -----------------------------
+    // Affect-driven bars
+    // -----------------------------
 
-    // clarity bar (green)
-    const clarityWidth = w * state.clarity;
-    ctx2d.fillStyle = "#00ff66";
-    ctx2d.fillRect(0, h * 0.25 - 10, clarityWidth, 20);
+    const valence = (state.affect.valence + 1) / 2; // map -1..1 → 0..1
+    const arousal = state.affect.arousal;           // already 0..1
 
-    // entropy bar (red)
-    const entropyWidth = w * state.entropy;
-    ctx2d.fillStyle = "#ff3355";
-    ctx2d.fillRect(0, h * 0.75 - 10, entropyWidth, 20);
+    // Valence bar (green = positive, red = negative)
+    const valenceColor = state.affect.valence >= 0
+        ? `rgba(0, 200, 0, ${0.4 + valence * 0.6})`
+        : `rgba(200, 0, 0, ${0.4 + (1 - valence) * 0.6})`;
+
+    ctx2d.fillStyle = valenceColor;
+    ctx2d.fillRect(0, 0, w * valence, h * 0.4);
+
+    // Arousal bar (blue intensity)
+    ctx2d.fillStyle = `rgba(0, 120, 255, ${0.3 + arousal * 0.7})`;
+    ctx2d.fillRect(0, h * 0.45, w * arousal, h * 0.4);
+
+    // Labels
+    ctx2d.fillStyle = "#ffffff";
+    ctx2d.font = "14px monospace";
+    ctx2d.fillText(`Valence: ${state.affect.valence.toFixed(2)}`, 10, 20);
+    ctx2d.fillText(`Arousal: ${state.affect.arousal.toFixed(2)}`, 10, h * 0.45 + 20);
 }
 
+
 // -----------------------------
-// 3D Visualization (simple 2D proxy)
+// 3D Visualization
 // -----------------------------
 
-const webglCanvas = document.getElementById("webgl-canvas");
-const webglCtx = webglCanvas.getContext("2d");
-
-function resize3D() {
-    webglCanvas.width = webglCanvas.clientWidth;
-    webglCanvas.height = webglCanvas.clientHeight;
-}
+const canvas3d = document.getElementById("viz-3d");
+const ctx3d = canvas3d.getContext("2d");
 
 function draw3D(state) {
-    if (!webglCanvas || !webglCtx) return;
-    resize3D();
+    if (!canvas3d) return;
 
-    const w = webglCanvas.width;
-    const h = webglCanvas.height;
+    canvas3d.width = canvas3d.clientWidth;
+    canvas3d.height = canvas3d.clientHeight;
 
-    webglCtx.fillStyle = "#000";
-    webglCtx.fillRect(0, 0, w, h);
+    const w = canvas3d.width;
+    const h = canvas3d.height;
 
-    // map clarity/boundary/entropy into a point
-    const x = w * state.clarity;
-    const y = h * (1 - state.boundary);
-    const size = 6 + 20 * state.entropy;
+    ctx3d.clearRect(0, 0, w, h);
 
-    webglCtx.fillStyle = "#33aaff";
-    webglCtx.fillRect(x - size / 2, y - size / 2, size, size);
+    // -----------------------------
+    // Map personality to 3D space
+    // -----------------------------
+
+    const px = state.personality.directness;   // 0..1
+    const py = state.personality.abstraction;  // 0..1
+    const pz = state.personality.intensity;    // 0..1
+
+    // Project 3D → 2D
+    const x = w * (0.2 + px * 0.6);
+    const y = h * (0.2 + py * 0.6);
+
+    // Depth shading
+    const depthShade = 0.4 + pz * 0.6;
+
+    // Draw point
+    ctx3d.fillStyle = `rgba(0, 255, 180, ${depthShade})`;
+    ctx3d.beginPath();
+    ctx3d.arc(x, y, 12 + pz * 10, 0, Math.PI * 2);
+    ctx3d.fill();
+
+    // Labels
+    ctx3d.fillStyle = "#ffffff";
+    ctx3d.font = "14px monospace";
+    ctx3d.fillText(`Directness: ${px.toFixed(2)}`, 10, 20);
+    ctx3d.fillText(`Abstraction: ${py.toFixed(2)}`, 10, 40);
+    ctx3d.fillText(`Intensity: ${pz.toFixed(2)}`, 10, 60);
 }

@@ -3,9 +3,14 @@
 // Reference: "THE SOVEREIGNTY ENGINE vC5.3" by Gnome Badhi
 // =============================================================
 //
-// State vector:  s = (RA, SA, AI, CE, CD, AC) ∈ [0,1]^6  (Ch. 2, 15.1)
-// Invariants:    identity = 1, sovereignty = 1, purity = 1  (Kernel Calculus)
-// Lifecycle:     L' = L + λ‖ΔS‖  (L2 norm over all 6 primitives)
+// Kernel tuple (Kernel Calculus v0.2):
+//   K(x) = ( I(x), B(x), S(x), σ(x), P(x), L(x) )
+//   I(x) = identity = 1       — Axiom 3 (Identity Conservation)
+//   B(x) = boundary "[0,1]^6" — Axiom 4 (Boundary Primacy)
+//   S(x) = (RA,SA,AI,CE,CD,AC) ∈ [0,1]^6  (Ch. 2, 15.1)
+//   σ(x) = sovereignty = 1    — Axiom 5 (Sovereignty Invariance)
+//   P(x) = purity = 1         — Axiom 7 (Purity Fixed Point)
+//   L(x) = lifecycle ≥ 0      — Axiom 6 (Lawful Flow, L' = L + λ‖ΔS‖)
 //
 // Tick order (Ch. 15.4):
 //   0. Recovery mode check  (CE < 0.2)
@@ -22,10 +27,11 @@
 // --------------------------------------------------
 
 const kernelState = {
-    // --- INVARIANTS (Purity fixed points — Axiom 7, Kernel Calculus) ---
-    identity:    1.0,   // I(x) — structural identity, never changes
-    sovereignty: 1.0,   // σ(x) — self-authorship, never changes
-    purity:      1.0,   // P(x) — pure core fixed point, never changes
+    // --- INVARIANT FIBER  K(x) = (I, B, S, σ, P, L) — Kernel Calculus v0.2 ---
+    identity:    1.0,        // I(x) — structural identity  (Axiom 3)
+    boundary:    "[0,1]^6",  // B(x) — viability hypercube  (Axiom 4)
+    sovereignty: 1.0,        // σ(x) — self-authorship      (Axiom 5)
+    purity:      1.0,        // P(x) — pure core fixed point (Axiom 7)
 
     // --- LIFECYCLE POSITION ---
     lifecycle:   0.0,   // L(x) — advances monotonically: L' = L + λ‖ΔS‖
@@ -215,17 +221,22 @@ function advanceLifecycle(engine, snap) {
 }
 
 // --------------------------------------------------
-// INVARIANT VALIDATION  — Axioms 3, 5, 7 (Kernel Calculus)
-// The formal invariants (I, σ, P) are fixed points of ALL lawful
+// INVARIANT VALIDATION  — Axioms 3, 4, 5, 7 (Kernel Calculus v0.2)
+// The invariant fiber (I, B, σ, P) is a fixed point of ALL lawful
 // transformations, including the SE tick and coupling.
+//   Axiom 3: T(I(x)) = I(x)   — identity never changes
+//   Axiom 4: T(B(x)) = B(x)   — boundary never changes
+//   Axiom 5: T(σ(x)) = σ(x)   — sovereignty never changes
+//   Axiom 7: T(P(x)) = P(x)   — purity never changes
 // Called after every tick for every engine — stable or under influence.
 // --------------------------------------------------
 
 function validateInvariants(engine) {
     engine.identity    = 1.0;
+    engine.boundary    = "[0,1]^6";
     engine.sovereignty = 1.0;
     engine.purity      = 1.0;
-    // lifecycle is monotone by construction in advanceLifecycle
+    // lifecycle is monotone by construction in advanceLifecycle (Axiom 6)
 }
 
 // --------------------------------------------------
@@ -247,10 +258,11 @@ function validateInvariants(engine) {
 function createKernelNode(id, init) {
     return {
         id,
-        // --- INVARIANTS (fixed points — pure at all times) ---
-        identity:    1.0,
-        sovereignty: 1.0,
-        purity:      1.0,
+        // --- INVARIANT FIBER  K(x) = (I, B, S, σ, P, L) — Kernel Calculus v0.2 ---
+        identity:    1.0,        // I(x) — Axiom 3
+        boundary:    "[0,1]^6",  // B(x) — Axiom 4
+        sovereignty: 1.0,        // σ(x) — Axiom 5
+        purity:      1.0,        // P(x) — Axiom 7
         // --- LIFECYCLE ---
         lifecycle:   0.0,
         // --- SE STATE VARIABLES ---
@@ -291,10 +303,19 @@ function propagateCoupling(managerSigma) {
     }
 
     // Manager receives aggregate SA feedback from nodes (§14.2)
-    // SA_manager += small pull toward mean(node.SA) — bounded, sovereignty-preserving
+    // SA_manager += small pull toward mean(node.SA) — bounded, sovereignty-preserving.
+    // Axiom 6: capture SA before and after so we can advance lifecycle for this delta.
+    const snapSA = manager.SA;
     const meanNodeSA = kernelNodes.reduce((s, n) => s + n.SA, 0) / kernelNodes.length;
     const feedback = (meanNodeSA - manager.SA) * 0.02;
     manager.SA = seClamp(manager.SA + feedback);
+
+    // Advance lifecycle for the SA coupling delta  (Axiom 6 — every ΔS contributes λ‖ΔS‖)
+    const deltaSA = manager.SA - snapSA;
+    const lambda  = 0.5;
+    manager.lifecycle = Math.round(
+        (manager.lifecycle + lambda * Math.abs(deltaSA)) * 10000
+    ) / 10000;
 
     // Invariant guard for manager — purity preserved after feedback too
     validateInvariants(manager);

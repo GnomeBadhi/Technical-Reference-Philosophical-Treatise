@@ -14,12 +14,12 @@ input.addEventListener("keydown", e => {
     if (e.key === "Enter") {
         const text = input.value.trim();
         input.value = "";
-        print("> " + text);
+        addMessage("user", text);
 
-        const intent = parseIntent(text);
-        const result = processIntent(intent);
+const intent = parseIntent(text);
+const result = processIntent(intent);
 
-        print(JSON.stringify(result, null, 2));
+addMessage("system", JSON.stringify(result, null, 2));
 
         statePanel.textContent = JSON.stringify(kernelState, null, 2);
 

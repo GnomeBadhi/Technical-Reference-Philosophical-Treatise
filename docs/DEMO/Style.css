@@ -102,3 +102,30 @@ canvas {
         overflow-y: auto;
     }
 }
+.chat-log {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.msg {
+    padding: 8px 12px;
+    border-radius: 8px;
+    max-width: 80%;
+    white-space: pre-wrap;
+    line-height: 1.4;
+}
+
+.msg.user {
+    align-self: flex-end;
+    background: #1a1a1a;
+    color: #0f0;
+}
+
+.msg.system {
+    align-self: flex-start;
+    background: #111;
+    color: #0af;
+}

@@ -63,15 +63,17 @@ function draw2D(state) {
 
     // --- Labels ---
     ctx2d.fillStyle = "rgba(200, 255, 240, 0.85)";
-    ctx2d.font = "14px JetBrains Mono";
-    ctx2d.fillText(`RA: ${state.RA.toFixed(2)}`,  10, 20);
-    ctx2d.fillText(`SA: ${state.SA.toFixed(2)}`,  10, h * 0.5 + 20);
-    ctx2d.fillText(`AI: ${state.AI.toFixed(2)}`,  10, 40);
-    ctx2d.fillText(`CE: ${state.CE.toFixed(2)}`,  10, 60);
-    ctx2d.fillText(`EP: ${state.EP.toFixed(3)}`,  10, 80);
+    ctx2d.font = "13px JetBrains Mono";
+    ctx2d.fillText(`RA: ${state.RA.toFixed(3)}`,  10, 20);
+    ctx2d.fillText(`SA: ${state.SA.toFixed(3)}`,  10, h * 0.5 + 20);
+    ctx2d.fillText(`AI: ${state.AI.toFixed(3)}`,  10, 40);
+    ctx2d.fillText(`CE: ${state.CE.toFixed(3)}`,  10, 60);
+    ctx2d.fillText(`CD: ${state.CD.toFixed(3)}`,  10, 80);
+    ctx2d.fillText(`AC: ${state.AC.toFixed(3)}`,  10, 100);
+    ctx2d.fillText(`EP: ${state.EP.toFixed(4)}`,  10, 120);
     if (state.recoveryMode) {
         ctx2d.fillStyle = "rgba(255, 80, 80, 0.9)";
-        ctx2d.fillText("⚠ RECOVERY", 10, 100);
+        ctx2d.fillText("⚠ RECOVERY", 10, 140);
     }
 }
 

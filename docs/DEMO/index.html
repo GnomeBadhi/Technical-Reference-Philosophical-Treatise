@@ -14,12 +14,24 @@
         <section id="terminal">
             <div id="terminal-output"></div>
             <input id="terminal-input" type="text" placeholder="Type…" autocomplete="off">
+            <div id="hint-bar">
+                <span class="hint">how am i</span>
+                <span class="hint">status</span>
+                <span class="hint">reflect</span>
+                <span class="hint">overwhelmed</span>
+                <span class="hint">stuck</span>
+                <span class="hint">what are you</span>
+            </div>
         </section>
 
         <!-- KERNEL STATE PANEL -->
         <section id="state-panel">
-            <h2>Kernel State</h2>
-            <pre id="state-json"></pre>
+            <h2>Kernel State <span id="regime-badge"></span></h2>
+            <div id="primitives-grid"></div>
+            <details id="state-raw">
+                <summary>Raw JSON</summary>
+                <pre id="state-json"></pre>
+            </details>
         </section>
 
         <!-- VISUALIZATION PANEL -->

@@ -1,5 +1,5 @@
 // -----------------------------
-// Kernel State and Primitives
+// Kernel State
 // -----------------------------
 
 const kernelState = {
@@ -11,8 +11,18 @@ const kernelState = {
         valence: 0.0,    // -1 (very negative) to +1 (very positive)
         arousal: 0.0,    // 0 (calm) to 1 (activated)
         confidence: 0.5  // 0–1, how sure the kernel is about its read
+    },
+    personality: {
+        directness: 0.5,   // 0–1, blunt vs indirect
+        abstraction: 0.5,  // 0–1, concrete vs abstract
+        intensity: 0.5,    // 0–1, low vs high emotional charge
+        autonomy: 0.7      // 0–1, how much the user pushes for self-direction
     }
 };
+
+// -----------------------------
+// Primitives
+// -----------------------------
 
 const PRIMITIVES = {
     INQUIRE_STATE: "INQUIRE_STATE",
@@ -22,6 +32,7 @@ const PRIMITIVES = {
     SOOTHE: "SOOTHE",
     ACTIVATE: "ACTIVATE",
     REFLECT: "REFLECT",
+    REPORT_STATUS: "REPORT_STATUS",
     UNKNOWN: "UNKNOWN"
 };
 
@@ -60,6 +71,10 @@ function parseIntent(text) {
         return PRIMITIVES.REFLECT;
     }
 
+    if (t.match(/status|engine status|system status|how are you running/)) {
+        return PRIMITIVES.REPORT_STATUS;
+    }
+
     return PRIMITIVES.UNKNOWN;
 }
 
@@ -96,9 +111,35 @@ function updateAffectFromText(text) {
         a.arousal += 0.2;
     }
 
-    // clamp
     a.valence = Math.max(-1, Math.min(1, a.valence));
     a.arousal = Math.max(0, Math.min(1, a.arousal));
+}
+
+// -----------------------------
+// Personality Update from Text
+// -----------------------------
+
+function updatePersonalityFromText(text) {
+    const t = text.toLowerCase();
+    const p = kernelState.personality;
+
+    if (t.match(/just say it|be blunt|don’t sugarcoat|no fluff/)) {
+        p.directness = Math.min(1, p.directness + 0.1);
+    }
+    if (t.match(/high level|abstract|pattern|structure/)) {
+        p.abstraction = Math.min(1, p.abstraction + 0.1);
+    }
+    if (t.match(/overwhelmed|intense|too much|on fire/)) {
+        p.intensity = Math.min(1, p.intensity + 0.1);
+    }
+    if (t.match(/i’ll decide|my call|don’t tell me what to do|my choice/)) {
+        p.autonomy = Math.min(1, p.autonomy + 0.1);
+    }
+
+    p.directness = Math.max(0, Math.min(1, p.directness));
+    p.abstraction = Math.max(0, Math.min(1, p.abstraction));
+    p.intensity = Math.max(0, Math.min(1, p.intensity));
+    p.autonomy = Math.max(0, Math.min(1, p.autonomy));
 }
 
 // -----------------------------
@@ -116,59 +157,118 @@ function describeAffect(a) {
         a.arousal < 0.3 ? "low activation" :
         "moderately activated";
 
-    return `${tone}, ${energy}, confidence ${a.confidence.toFixed(2)}.`;
+    return `${tone}, ${energy}, confidence ${a.confidence.toFixed(2)}`;
 }
 
 // -----------------------------
-// Intent Processing
+// State Mutation (Primitives)
 // -----------------------------
 
 function processIntent(intent, text) {
-    // always update affect from the raw text
-    updateAffectFromText(text);
-
+    // mutate kernelState + history only
     switch (intent) {
         case PRIMITIVES.ADJUST_CLARITY:
             kernelState.clarity = Math.min(1, kernelState.clarity + 0.05);
             kernelState.history.push({ op: "clarity+", text });
-            return "I nudged clarity up a bit.";
+            break;
 
         case PRIMITIVES.ADJUST_BOUNDARY:
             kernelState.boundary = Math.min(1, kernelState.boundary + 0.05);
             kernelState.history.push({ op: "boundary+", text });
-            return "Boundary tightened slightly.";
+            break;
 
         case PRIMITIVES.ADJUST_ENTROPY:
             kernelState.entropy = Math.max(0, kernelState.entropy - 0.05);
             kernelState.history.push({ op: "entropy-", text });
-            return "Entropy lowered; things should feel a bit more stable.";
+            break;
 
         case PRIMITIVES.SOOTHE:
             kernelState.entropy = Math.max(0, kernelState.entropy - 0.03);
             kernelState.affect.arousal = Math.max(0, kernelState.affect.arousal - 0.2);
             kernelState.history.push({ op: "soothe", text });
-            return "I’m easing the system—less noise, less demand on you.";
+            break;
 
         case PRIMITIVES.ACTIVATE:
             kernelState.clarity = Math.min(1, kernelState.clarity + 0.03);
             kernelState.affect.arousal = Math.min(1, kernelState.affect.arousal + 0.2);
             kernelState.history.push({ op: "activate", text });
-            return "I’m adding a bit of activation without blowing the circuits.";
+            break;
 
-        case PRIMITIVES.INQUIRE_STATE: {
-            const a = kernelState.affect;
-            const desc = describeAffect(a);
+        case PRIMITIVES.INQUIRE_STATE:
             kernelState.history.push({ op: "inquire_state", text });
-            return `Right now I read you as valence ${a.valence.toFixed(2)}, arousal ${a.arousal.toFixed(2)} — ${desc}`;
-        }
+            break;
 
         case PRIMITIVES.REFLECT:
             kernelState.history.push({ op: "reflect", text });
-            return "You’re pushing for coherence under load and still tracking the whole field. That’s not nothing.";
+            break;
+
+        case PRIMITIVES.REPORT_STATUS:
+            kernelState.history.push({ op: "report_status", text });
+            break;
 
         case PRIMITIVES.UNKNOWN:
         default:
             kernelState.history.push({ op: "unknown", text });
-            return "I didn’t map that cleanly to a primitive, but I registered it in the affect vector.";
+            break;
     }
+}
+
+// -----------------------------
+// Sovereign, Personality-Aware Reply
+// -----------------------------
+
+function generateReply(intent, state, text) {
+    const a = state.affect;
+    const p = state.personality;
+
+    const blunt = p.directness > 0.7;
+    const highAutonomy = p.autonomy > 0.7;
+
+    if (intent === PRIMITIVES.INQUIRE_STATE) {
+        if (blunt) {
+            return `Short version: valence ${a.valence.toFixed(2)}, arousal ${a.arousal.toFixed(2)}. You’re running hot but coherent.`;
+        }
+        return `I read you as ${describeAffect(a)}. You’re carrying load and still tracking structure.`;
+    }
+
+    if (intent === PRIMITIVES.REPORT_STATUS) {
+        const base = `Clarity ${state.clarity.toFixed(2)}, boundary ${state.boundary.toFixed(2)}, entropy ${state.entropy.toFixed(2)}.`;
+        if (highAutonomy) {
+            return `${base} I’m not going to tell you what to do with that—you decide how to steer.`;
+        }
+        return `${base} From my side, you’ve got room to adjust without breaking coherence.`;
+    }
+
+    if (intent === PRIMITIVES.ADJUST_CLARITY) {
+        if (blunt) {
+            return `Clarity nudged up. Use it; it won’t hold forever at this load.`;
+        }
+        return `I pushed clarity up a bit. Things should feel a little sharper without overclocking you.`;
+    }
+
+    if (intent === PRIMITIVES.ADJUST_BOUNDARY) {
+        return `Boundary tightened slightly. You’re trading reach for protection—consistent with how you’ve been steering.`;
+    }
+
+    if (intent === PRIMITIVES.ADJUST_ENTROPY) {
+        return `Entropy lowered; the field should feel a bit more stable. You’ll still feel the pressure, just less noise.`;
+    }
+
+    if (intent === PRIMITIVES.SOOTHE) {
+        return `I’m easing the system—less noise, less demand. You’re still in control; I’m just lowering the background roar.`;
+    }
+
+    if (intent === PRIMITIVES.ACTIVATE) {
+        return `I’m adding a bit of activation without blowing the circuits. If it feels like too much, say so and I’ll rebalance.`;
+    }
+
+    if (intent === PRIMITIVES.REFLECT) {
+        return `You’re pushing for coherence under load and still tracking the whole field. That’s a high-cost, high-skill pattern.`;
+    }
+
+    // UNKNOWN or anything else
+    if (highAutonomy) {
+        return `I’m not going to over-interpret that. I registered the pressure; you decide what it means.`;
+    }
+    return `I didn’t map that cleanly, but I felt the push behind it. If you want a sharper read, give me one more pass.`;
 }

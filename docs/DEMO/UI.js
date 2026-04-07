@@ -221,8 +221,8 @@ function handleMessage(text) {
 
     printUser(text);
 
-    // Kernel.js handles both SE tick + TextKernel tick + annotation
-const finalReply = processMessage(text);
+    // processMessage returns { reply, txtAdj } (Kernel.js coordinates both ticks)
+    const { reply: finalReply, txtAdj } = processMessage(text);
 
     // Thinking indicator
     termIn.disabled = true;
@@ -303,6 +303,20 @@ function createBottomBar() {
 }
 
 // --------------------------------------------------
+// LIVE CLOCK
+// --------------------------------------------------
+
+const clockEl = document.getElementById("live-clock");
+
+function updateClock() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, "0");
+    clockEl.textContent =
+        `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}` +
+        `  L:${kernelState.lifecycle.toFixed(4)}`;
+}
+
+// --------------------------------------------------
 // INITIALIZE
 // --------------------------------------------------
 
@@ -313,9 +327,19 @@ window.addEventListener("load", () => {
     draw2D(kernelState);
     draw3D(kernelState);
 
+    // Live clock — updates every second
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Real-time visualization — redraws canvases every second
+    setInterval(() => {
+        draw2D(kernelState);
+        draw3D(kernelState);
+    }, 1000);
+
     printKernel(
-        "Sovereignty Engine vC5.3 online. TextKernel active. " +
+        "Sovereignty Engine vC5.3 online. " +
         "Tracking RA, SA, AI, CE, CD, AC and SA_txt, IF, IT, BI, SE_txt, FD. " +
-        "Three influenced nodes running. What’s on your mind?"
+        "Three influenced nodes running. What's on your mind?"
     );
 });

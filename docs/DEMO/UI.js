@@ -60,36 +60,16 @@ function updateStatePanel() {
 function handleMessage(text) {
     if (!text.trim()) return;
 
-    // Show user message
     printUser(text);
 
-    // ── SOVEREIGNTY ENGINE PIPELINE ──────────────────────────────────
-    // Formal pipeline: B_t(X_t) → P_t → E_t → A_t → U → L' → validate
-    // ArchitectureSpecifications §4-6, InvariantStructure §4
-
-    // 1. Boundary Operator: B_t(X_t) → X_t*
-    //    Filters raw input based on current boundary integrity state.
-    const filteredInput = applyBoundaryFilter(text, kernelState);
-
-    // 2. Affect + personality update (scaled by boundary gain)
-    updateAffectFromText(filteredInput.text, filteredInput.gain);
-    updatePersonalityFromText(filteredInput.text);
-
-    // 3. Perception: P_t = Extract(S_t, X_t*)
-    const intent = parseIntent(filteredInput.text);
-
-    // 4. Evaluation: E_t = Assess(P_t)
-    const evaluation = evaluatePerception(intent, filteredInput, kernelState);
-
-    // 5. Adjustment + Update: A_t = R(S_t, E_t) → S_{t+1}
-    //    (lifecycle advancement and invariant validation occur inside)
-    processIntent(intent, filteredInput.text, evaluation);
+    // ── SOVEREIGNTY ENGINE vC5.3 PIPELINE ────────────────────────────
+    // Reference: SovereigntyEngine.pdf §15.4 (Tick Architecture)
+    // processMessage: text → (ρ, μ, σ) → se_tick(manager) → propagateCoupling
+    // Invariants (purity=1, identity=1, sovereignty=1) are validated inside
+    // se_tick for every engine — stable and under coupling influence.
+    const reply = processMessage(text);
     // ─────────────────────────────────────────────────────────────────
 
-    // Generate reply
-    const reply = generateReply(intent, kernelState, text);
-
-    // Show thinking indicator, then reveal reply after a short delay
     termIn.disabled = true;
     showThinking();
     const delay = 300 + Math.random() * 300;
@@ -125,6 +105,6 @@ window.addEventListener("load", () => {
     draw2D(kernelState);
     draw3D(kernelState);
 
-    // Welcome message
-    printKernel("Hello. I'm the Sovereign Kernel — I track your clarity, boundary, and state as we talk. Just speak naturally. What's on your mind?");
+    // Welcome message — reflects SE6 primitives
+    printKernel("Sovereignty Engine vC5.3 online. I track RA, SA, AI, CE, CD, and AC as we talk — six primitives of cybernetic being. The 3 influenced nodes are running. What's on your mind?");
 });

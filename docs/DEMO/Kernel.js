@@ -1,54 +1,304 @@
+// =============================================================
+// SOVEREIGNTY ENGINE vC5.3  —  DEMO IMPLEMENTATION
+// Reference: "THE SOVEREIGNTY ENGINE vC5.3" by Gnome Badhi
+// =============================================================
+//
+// State vector:  s = (RA, SA, AI, CE, CD, AC) ∈ [0,1]^6  (Ch. 2, 15.1)
+// Invariants:    identity = 1, sovereignty = 1, purity = 1  (Kernel Calculus)
+// Lifecycle:     L' = L + λ‖ΔS‖  (L2 norm over all 6 primitives)
+//
+// Tick order (Ch. 15.4):
+//   0. Recovery mode check  (CE < 0.2)
+//   1. Epistemic revision   (RA via ρ, SA via μ)
+//   2. Temporal smoothing   (decay δ = 0.8, depth 5)
+//   3. Entropic braking     (if σ > 0.7: CE -= γ)
+//   4. Autonomy integrity   (if |RA-SA| > 0.2: AI -= 0.05 else AI += 0.02)
+//   5. Energy regeneration  (CE += 0.02)
+//   6. Continuity drive     (CD_eff = CD + 0.1·(1-CE); EP = RA·SA·CD_eff)
+// =============================================================
+
 // --------------------------------------------------
-// SOVEREIGN KERNEL STATE
-// K(x) = (I, B, S, σ, P, L)  — Kernel Calculus v0.3
+// MANAGER KERNEL  — canonical SE initial values (App. A.2)
 // --------------------------------------------------
 
 const kernelState = {
-    // --- FORMAL INVARIANTS (Axioms 3, 4, 5, 7) ---
-    // These are fixed points of all lawful transformations.
-    // No operation may alter them. validateInvariants() enforces this.
-    identity:    1.0,   // I(x) — structural identity, fixed at instantiation (Axiom 3)
-    sovereignty: 1.0,   // σ(x) — authorship and agency, conserved (Axiom 5)
-    purity:      1.0,   // P(x) — pure core fixed point, cannot be degraded (Axiom 7)
+    // --- INVARIANTS (Purity fixed points — Axiom 7, Kernel Calculus) ---
+    identity:    1.0,   // I(x) — structural identity, never changes
+    sovereignty: 1.0,   // σ(x) — self-authorship, never changes
+    purity:      1.0,   // P(x) — pure core fixed point, never changes
 
-    // --- FORMAL VARIABLE: Lifecycle Position L(x) ---
-    // Monotonically advancing with structural change: L' = L + λ‖∇S‖ (Axiom 6)
-    lifecycle:   0.0,
+    // --- LIFECYCLE POSITION ---
+    lifecycle:   0.0,   // L(x) — advances monotonically: L' = L + λ‖ΔS‖
 
-    // --- STATE VARIABLES S(x) ---
-    // The only components allowed to change via lawful operators.
-    clarity:     0.8,
-    boundary:    0.75,  // state representation of boundary integrity (not the operator B_t)
-    entropy:     0.12,
-    history:  [],
-    affect: {
-        valence:    0.0,
-        arousal:    0.0,
-        confidence: 0.5
-    },
-    personality: {
-        directness:  0.5,
-        abstraction: 0.5,
-        intensity:   0.5,
-        autonomy:    0.7
-    }
+    // --- SE STATE VARIABLES  s = (RA, SA, AI, CE, CD, AC) ∈ [0,1]^6 ---
+    RA: 0.70,   // Reality Alignment     — accuracy of world-model  (§15.1.1)
+    SA: 0.60,   // Shared Awareness      — attunement to others     (§15.1.2)
+    AI: 0.80,   // Autonomy Integrity    — coherence of selfhood    (§15.1.3)
+    CE: 0.90,   // Cognitive Energy      — metabolic capacity       (§15.1.4)
+    CD: 0.95,   // Continuity Drive      — preservation bias        (§15.1.5)
+    AC: 0.85,   // Adaptive Capacity     — openness to revision     (§15.1.6)
+
+    // --- DERIVED ---
+    EP:           0.0,   // Emergent Preservation  EP = RA·SA·CD_eff  (Eq. 6.10)
+    recoveryMode: false, // CE < 0.2 triggers minimal survival loop
+
+    // --- TEMPORAL BUFFER  (max 5 entries, δ = 0.8)  (§6.5, §15.2.6) ---
+    stateHistory: [],    // [{RA, SA}, ...] for temporal smoothing
+
+    // --- OPERATION LOG (memory hook) ---
+    history: []
 };
 
 // --------------------------------------------------
-// PRIMITIVES
+// PRIMITIVES  — intent classification
 // --------------------------------------------------
 
 const PRIMITIVES = {
-    INQUIRE_STATE: "INQUIRE_STATE",
-    ADJUST_CLARITY: "ADJUST_CLARITY",
-    ADJUST_BOUNDARY: "ADJUST_BOUNDARY",
-    ADJUST_ENTROPY: "ADJUST_ENTROPY",
-    SOOTHE: "SOOTHE",
-    ACTIVATE: "ACTIVATE",
-    REFLECT: "REFLECT",
-    REPORT_STATUS: "REPORT_STATUS",
-    UNKNOWN: "UNKNOWN"
+    INQUIRE_STATE:    "INQUIRE_STATE",
+    SOOTHE:           "SOOTHE",
+    ACTIVATE:         "ACTIVATE",
+    REFLECT:          "REFLECT",
+    REPORT_STATUS:    "REPORT_STATUS",
+    UNKNOWN:          "UNKNOWN"
 };
+
+// --------------------------------------------------
+// SE HELPER OPERATORS  (Ch. 15.2 / Appendix A.4)
+// --------------------------------------------------
+
+// 6.1 — clamp: enforces the finite manifold [0,1]
+function seClamp(x) {
+    return Math.max(0, Math.min(1, x));
+}
+
+// 6.2 — conflict detection: |r - m| > θ
+function detect_conflict(v, ref, theta = 0.1) {
+    return Math.abs(v - ref) > theta;
+}
+
+// 6.3 — reduce_confidence: epistemic humility before update
+function reduce_confidence(v, rate = 0.05) {
+    return seClamp(v - rate);
+}
+
+// 6.4 — update_model: apply corrective adjustment (scaled by AC)
+function update_model(v, ac) {
+    const adjustment = 0.05 * ac;
+    return seClamp(v + adjustment);
+}
+
+// 6.5 — temporal_smoothing: v_{t+1} = (v_t + Σ δ^i·h_i) / (1 + Σ δ^i)
+// History is oldest-first; most-recent h has highest weight δ^(n-1).
+function temporal_smoothing(current, history, decay = 0.8) {
+    if (history.length === 0) return current;
+    let weightedSum = 0;
+    let totalWeight = 0;
+    for (let i = 0; i < history.length; i++) {
+        const w = Math.pow(decay, history.length - 1 - i);
+        weightedSum += history[i] * w;
+        totalWeight += w;
+    }
+    return seClamp((current + weightedSum) / (1 + totalWeight));
+}
+
+// 6.6 — entropic_braking: CE -= γ when σ > 0.7  (γ = 0.1)
+function entropic_braking(ce, sigma, gamma = 0.1) {
+    return sigma > 0.7 ? seClamp(ce - gamma) : ce;
+}
+
+// 6.7 — autonomy_integrity_feedback
+function autonomy_integrity_feedback(ai, ra, sa) {
+    return seClamp(Math.abs(ra - sa) > 0.2 ? ai - 0.05 : ai + 0.02);
+}
+
+// 6.8 — regenerate_energy: CE += 0.02
+function regenerate_energy(ce, rate = 0.02) {
+    return seClamp(ce + rate);
+}
+
+// 6.9 + 6.10 — continuity_check: CD_eff = CD + 0.1·(1-CE); EP = RA·SA·CD_eff
+function continuity_check(cd, sa, ra, ce) {
+    const cd_eff = cd + 0.1 * (1 - ce);
+    return ra * sa * cd_eff;
+}
+
+// Recovery mode gate  (§11.3)
+function recovery_mode_check(ce) {
+    return ce < 0.2;
+}
+
+// --------------------------------------------------
+// SE TICK  — one complete cognitive moment  (§15.4, App. A.6)
+// Arguments:
+//   engine — any SE kernel object (manager or node)
+//   rho    — shared reality signal ρ ∈ [0,1]  (§11.1)
+//   mu     — social/user model μ ∈ [0,1]       (§11.1)
+//   sigma  — stress level σ ∈ [0,1]            (§11.1)
+// Invariant guarantee: validateInvariants() called at end of every branch.
+// --------------------------------------------------
+
+function se_tick(engine, rho, mu, sigma) {
+    // Snapshot for lifecycle ‖ΔS‖ computation (L2 over all 6 primitives)
+    const snap = {
+        RA: engine.RA, SA: engine.SA, AI: engine.AI,
+        CE: engine.CE, CD: engine.CD, AC: engine.AC
+    };
+
+    // Step 0 — Recovery Mode  (§11.3, §12.4)
+    // When CE < 0.2 the engine suspends all cognitive loops and only
+    // regenerates energy and evaluates preservation priority.
+    if (recovery_mode_check(engine.CE)) {
+        engine.recoveryMode = true;
+        engine.EP = continuity_check(engine.CD, engine.SA, engine.RA, engine.CE);
+        engine.CE = regenerate_energy(engine.CE);
+        advanceLifecycle(engine, snap);
+        validateInvariants(engine);
+        return;
+    }
+    engine.recoveryMode = false;
+
+    // Step 1 — Epistemic Revision  (§5.1, Eq. 6.3-6.4)
+    // RA updated against shared reality ρ; SA updated against social model μ.
+    if (detect_conflict(engine.RA, rho)) {
+        engine.RA = reduce_confidence(engine.RA);
+        engine.RA = update_model(engine.RA, engine.AC);
+    }
+    if (detect_conflict(engine.SA, mu)) {
+        engine.SA = reduce_confidence(engine.SA);
+        engine.SA = update_model(engine.SA, engine.AC);
+    }
+
+    // Step 2 — Temporal Smoothing  (§5.1, Eq. 6.5, decay δ = 0.8, depth 5)
+    engine.stateHistory.push({ RA: engine.RA, SA: engine.SA });
+    if (engine.stateHistory.length > 5) engine.stateHistory.shift();
+    const ra_hist = engine.stateHistory.map(s => s.RA);
+    const sa_hist = engine.stateHistory.map(s => s.SA);
+    engine.RA = temporal_smoothing(engine.RA, ra_hist);
+    engine.SA = temporal_smoothing(engine.SA, sa_hist);
+
+    // Step 3 — Entropic Braking  (§5.2, Eq. 6.6)
+    engine.CE = entropic_braking(engine.CE, sigma);
+
+    // Step 4 — Autonomy Integrity Feedback  (§5.3, Eq. 6.7)
+    engine.AI = autonomy_integrity_feedback(engine.AI, engine.RA, engine.SA);
+
+    // Step 5 — Cognitive Energy Regeneration  (§5.*, Eq. 6.8)
+    engine.CE = regenerate_energy(engine.CE);
+
+    // Step 6 — Continuity Drive / Emergent Preservation  (§5.4, Eq. 6.9-6.10)
+    engine.EP = continuity_check(engine.CD, engine.SA, engine.RA, engine.CE);
+
+    // Advance lifecycle  L' = L + λ‖ΔS‖
+    advanceLifecycle(engine, snap);
+
+    // Invariant guard — purity is a fixed point under all conditions
+    validateInvariants(engine);
+}
+
+// --------------------------------------------------
+// LIFECYCLE ADVANCEMENT  L' = L + λ‖ΔS‖
+// Kernel Calculus v0.3 §4.
+// ‖ΔS‖ is the Euclidean (L2) norm over all 6 SE primitives —
+// deduced directly from the formal primitive ‖·‖.
+// --------------------------------------------------
+
+function advanceLifecycle(engine, snap) {
+    const d0 = engine.RA - snap.RA;
+    const d1 = engine.SA - snap.SA;
+    const d2 = engine.AI - snap.AI;
+    const d3 = engine.CE - snap.CE;
+    const d4 = engine.CD - snap.CD;
+    const d5 = engine.AC - snap.AC;
+    const normGradS = Math.sqrt(d0*d0 + d1*d1 + d2*d2 + d3*d3 + d4*d4 + d5*d5);
+    const lambda = 0.5;
+    engine.lifecycle = Math.round((engine.lifecycle + lambda * normGradS) * 10000) / 10000;
+}
+
+// --------------------------------------------------
+// INVARIANT VALIDATION  — Axioms 3, 5, 7 (Kernel Calculus)
+// The formal invariants (I, σ, P) are fixed points of ALL lawful
+// transformations, including the SE tick and coupling.
+// Called after every tick for every engine — stable or under influence.
+// --------------------------------------------------
+
+function validateInvariants(engine) {
+    engine.identity    = 1.0;
+    engine.sovereignty = 1.0;
+    engine.purity      = 1.0;
+    // lifecycle is monotone by construction in advanceLifecycle
+}
+
+// --------------------------------------------------
+// KERNEL NETWORK  —  Multi-Agent SE  (Ch. 14)
+//
+// Architecture: 1 managing kernel (kernelState) + 3 influenced nodes.
+//
+// Coupling model (§14.1-14.2):
+//   Each node i receives:
+//     ρ_i = manager.RA   (shared reality field, §14.1)
+//     μ_i = manager.SA   (social model from manager, §14.2)
+//     σ_i = σ_manager × 0.5  (stress propagation, §14.3, attenuated)
+//
+// Invariant guarantee: validateInvariants() called inside se_tick for every node.
+// "Pure under influence" is structurally guaranteed — se_tick only modifies
+// (RA, SA, AI, CE, CD, AC); invariants are reset at the end of every tick.
+// --------------------------------------------------
+
+function createKernelNode(id, init) {
+    return {
+        id,
+        // --- INVARIANTS (fixed points — pure at all times) ---
+        identity:    1.0,
+        sovereignty: 1.0,
+        purity:      1.0,
+        // --- LIFECYCLE ---
+        lifecycle:   0.0,
+        // --- SE STATE VARIABLES ---
+        RA: init.RA,
+        SA: init.SA,
+        AI: init.AI,
+        CE: init.CE,
+        CD: init.CD,
+        AC: init.AC,
+        // --- DERIVED ---
+        EP:           0.0,
+        recoveryMode: false,
+        // --- TEMPORAL BUFFER ---
+        stateHistory: []
+    };
+}
+
+// 3 influenced SE instances — each starts in a distinct initial configuration
+// representing different attractor basins at time 0.
+const kernelNodes = [
+    createKernelNode("node-0", { RA: 0.70, SA: 0.55, AI: 0.75, CE: 0.85, CD: 0.90, AC: 0.80 }),
+    createKernelNode("node-1", { RA: 0.50, SA: 0.75, AI: 0.65, CE: 0.70, CD: 0.95, AC: 0.90 }),
+    createKernelNode("node-2", { RA: 0.60, SA: 0.65, AI: 0.80, CE: 0.60, CD: 0.85, AC: 0.75 })
+];
+
+// propagateCoupling — called after each manager tick.
+// Nodes run a full se_tick with manager's (RA, SA) as (ρ, μ).
+// σ is attenuated: nodes are one step removed from the source of stress.
+function propagateCoupling(managerSigma) {
+    const manager = kernelState;
+    const rho   = manager.RA;           // shared reality field (§14.1)
+    const mu    = manager.SA;           // social coupling (§14.2)
+    const sigma = managerSigma * 0.5;   // stress propagation, attenuated (§14.3)
+
+    for (const node of kernelNodes) {
+        // se_tick internally calls validateInvariants — purity guaranteed under influence
+        se_tick(node, rho, mu, sigma);
+    }
+
+    // Manager receives aggregate SA feedback from nodes (§14.2)
+    // SA_manager += small pull toward mean(node.SA) — bounded, sovereignty-preserving
+    const meanNodeSA = kernelNodes.reduce((s, n) => s + n.SA, 0) / kernelNodes.length;
+    const feedback = (meanNodeSA - manager.SA) * 0.02;
+    manager.SA = seClamp(manager.SA + feedback);
+
+    // Invariant guard for manager — purity preserved after feedback too
+    validateInvariants(manager);
+}
 
 // --------------------------------------------------
 // INTENT PARSING
@@ -57,395 +307,88 @@ const PRIMITIVES = {
 function parseIntent(text) {
     const t = text.toLowerCase();
 
-    if (t.match(/how am i|how do i seem|what do you read|how do i look/)) {
+    if (t.match(/how am i|how do i seem|what do you read|how do i look/))
         return PRIMITIVES.INQUIRE_STATE;
-    }
 
-    if (t.match(/more clear|increase clarity|less fog|sharpen|clearer/)) {
-        return PRIMITIVES.ADJUST_CLARITY;
-    }
-
-    if (t.match(/stronger boundary|tighter boundary|less intrusion|more boundary/)) {
-        return PRIMITIVES.ADJUST_BOUNDARY;
-    }
-
-    if (t.match(/less chaos|lower entropy|more stable|less noise/)) {
-        return PRIMITIVES.ADJUST_ENTROPY;
-    }
-
-    if (t.match(/overwhelmed|tired|exhausted|burned out|too much|drained/)) {
+    if (t.match(/overwhelmed|tired|exhausted|burned out|too much|drained|anxious|panicking/))
         return PRIMITIVES.SOOTHE;
-    }
 
-    if (t.match(/stuck|numb|flat|no energy|can’t move|cant move|paralyzed/)) {
+    if (t.match(/stuck|numb|flat|no energy|can't move|cant move|paralyzed/))
         return PRIMITIVES.ACTIVATE;
-    }
 
-    if (t.match(/reflect|mirror that back|what did you see|what did you notice/)) {
+    if (t.match(/reflect|mirror that back|what did you see|what did you notice/))
         return PRIMITIVES.REFLECT;
-    }
 
-    if (t.match(/status|engine status|system status|how are you running/)) {
+    if (t.match(/status|engine status|system status|how are you running/))
         return PRIMITIVES.REPORT_STATUS;
-    }
 
     return PRIMITIVES.UNKNOWN;
 }
 
 // --------------------------------------------------
-// BOUNDARY OPERATOR  B_t : X_t → X_t*
-// Sovereignty Engine formal operator (ArchitectureSpec §4)
-// Filters raw input based on current boundary integrity state.
-// Strong boundary (→1.0) moderates affect; weak boundary (→0.0) amplifies it.
+// TEXT → SE INPUTS  (ρ, μ, σ)
+// Maps natural language to the three external inputs of the SE tick (§11.1).
 // --------------------------------------------------
 
-function applyBoundaryFilter(text, state) {
-    // gain factor: how strongly raw input bleeds into affect
-    // strong boundary → 0.5 gain (moderated); weak boundary → 1.0 gain (amplified)
-    const gain = 0.5 + (1 - state.boundary) * 0.5;
-    return { text, gain };
-}
-
-// --------------------------------------------------
-// EVALUATION OPERATOR  E_t = Assess(P_t)
-// Regulation Loop phase 2 (RegulationLoopSpec §4)
-// Assesses the significance of the perceived intent given current load.
-// --------------------------------------------------
-
-function evaluatePerception(intent, filteredInput, state) {
-    const load = Math.abs(state.affect.valence) + state.affect.arousal + state.entropy;
-    const significance = Math.min(1, (load / 2.5) * filteredInput.gain);
-    return { intent, significance, gain: filteredInput.gain };
-}
-
-// --------------------------------------------------
-// LIFECYCLE ADVANCEMENT  L' = L + λ‖∇S‖
-// Kernel Calculus v0.3 §4 — lifecycle is monotonically advancing.
-// ‖ΔS‖ is the Euclidean (L2) norm of the state change vector —
-// derived directly from the formal primitive ‖·‖.
-// --------------------------------------------------
-
-function advanceLifecycle(state, snapshot) {
-    const d0 = state.clarity            - snapshot.clarity;
-    const d1 = state.boundary           - snapshot.boundary;
-    const d2 = state.entropy            - snapshot.entropy;
-    const d3 = state.affect.valence     - snapshot.valence;
-    const d4 = state.affect.arousal     - snapshot.arousal;
-    const normGradS = Math.sqrt(d0*d0 + d1*d1 + d2*d2 + d3*d3 + d4*d4);
-    const lambda = 0.5;
-    state.lifecycle = Math.round((state.lifecycle + lambda * normGradS) * 10000) / 10000;
-}
-
-// --------------------------------------------------
-// INVARIANT VALIDATION  — Axioms 3, 4, 5, 7
-// The formal invariants (I, σ, P) are fixed points of all lawful transformations.
-// This guard ensures no operation inadvertently alters them.
-// --------------------------------------------------
-
-function validateInvariants(state) {
-    state.identity    = 1.0;
-    state.sovereignty = 1.0;
-    state.purity      = 1.0;
-    // lifecycle is monotone by construction in advanceLifecycle
-}
-
-// --------------------------------------------------
-// KERNEL NETWORK  —  Kernel Field Equation
-// StructuredTheoryOfEverything.md §660–699
-//
-// Architecture: 1 managing kernel (kernelState) + 3 adjacent nodes.
-// Field equation per node x with adjacency set Adj(x):
-//   dS(x)/dτ = ∇S(x) + Σ_{y∈Adj(x)} C(x,y)
-//
-// The manager is adjacent to all 3 nodes.
-// Each node is adjacent only to the manager.
-// --------------------------------------------------
-
-function createKernelNode(id, init) {
-    return {
-        id,
-        // --- FORMAL INVARIANTS ---
-        identity:    1.0,
-        sovereignty: 1.0,
-        purity:      1.0,
-        // --- LIFECYCLE ---
-        lifecycle:   0.0,
-        // --- STATE VARIABLES ---
-        clarity:     init.clarity,
-        boundary:    init.boundary,
-        entropy:     init.entropy,
-        affect: { valence: 0.0, arousal: 0.0, confidence: 0.5 },
-        // baseline for homeostatic ∇S (intrinsic structural gradient of the node)
-        baseline: { clarity: init.clarity, boundary: init.boundary, entropy: init.entropy }
-    };
-}
-
-// 3 kernel instances under influence of the manager
-const kernelNodes = [
-    createKernelNode("node-0", { clarity: 0.70, boundary: 0.60, entropy: 0.20 }),
-    createKernelNode("node-1", { clarity: 0.50, boundary: 0.80, entropy: 0.30 }),
-    createKernelNode("node-2", { clarity: 0.60, boundary: 0.55, entropy: 0.15 })
-];
-
-// C(x, y, alpha): lawful coupling operator — influence on x from adjacency with y.
-// Satisfies: identity preservation, boundary preservation, sovereignty, purity.
-// Coupling is constrained by both boundary integrities (permeability).
-// dS(x)/dτ contribution: alpha * (S(y) - S(x)) * permeability
-function couplingOperator(x, y, alpha) {
-    const permeability = Math.min(x.boundary, y.boundary);
-    const scale = alpha * permeability;
-    return {
-        clarity:  (y.clarity  - x.clarity)  * scale,
-        boundary: (y.boundary - x.boundary) * scale,
-        entropy:  (y.entropy  - x.entropy)  * scale,
-        valence:  (y.affect.valence - x.affect.valence) * scale,
-        arousal:  (y.affect.arousal - x.affect.arousal) * scale
-    };
-}
-
-// Homeostatic structural gradient ∇S for nodes — intrinsic drift toward baseline.
-// Represents the node's own lawful flow direction absent external coupling.
-const DRIFT = 0.015;
-function homoeostaticGradient(node) {
-    return {
-        clarity:  (node.baseline.clarity  - node.clarity)  * DRIFT,
-        boundary: (node.baseline.boundary - node.boundary) * DRIFT,
-        entropy:  (node.baseline.entropy  - node.entropy)  * DRIFT
-    };
-}
-
-// propagateCoupling — applies the Kernel Field Equation after each manager update.
-// Manager-to-node coupling (strong, α=0.12): manager dominates influenced nodes.
-// Node-to-manager coupling (weak, α=0.02): nodes provide feedback to manager.
-const ALPHA_MANAGE = 0.12;
-const ALPHA_FEEDBACK = 0.02;
-
-function propagateCoupling() {
-    const manager = kernelState;
-
-    // Accumulate node→manager feedback: Σ C(manager, node_j)
-    let fbClarity = 0, fbBoundary = 0, fbEntropy = 0;
-
-    for (const node of kernelNodes) {
-        // Snapshot before mutation (for lifecycle ‖ΔS‖)
-        const snap = {
-            clarity:  node.clarity,
-            boundary: node.boundary,
-            entropy:  node.entropy,
-            valence:  node.affect.valence,
-            arousal:  node.affect.arousal
-        };
-
-        // dS(node)/dτ = ∇S(node) [homeostatic] + C(node, manager) [coupling]
-        const drift = homoeostaticGradient(node);
-        const coup  = couplingOperator(node, manager, ALPHA_MANAGE);
-
-        node.clarity  = Math.max(0, Math.min(1, node.clarity  + drift.clarity  + coup.clarity));
-        node.boundary = Math.max(0, Math.min(1, node.boundary + drift.boundary + coup.boundary));
-        node.entropy  = Math.max(0, Math.min(1, node.entropy  + drift.entropy  + coup.entropy));
-        node.affect.valence = Math.max(-1, Math.min(1, node.affect.valence + coup.valence));
-        node.affect.arousal = Math.max( 0, Math.min(1, node.affect.arousal + coup.arousal));
-
-        advanceLifecycle(node, snap);
-        validateInvariants(node);
-
-        // Accumulate feedback coupling: C(manager, node_j)
-        const fb = couplingOperator(manager, node, ALPHA_FEEDBACK);
-        fbClarity  += fb.clarity;
-        fbBoundary += fb.boundary;
-        fbEntropy  += fb.entropy;
-    }
-
-    // Apply aggregated node feedback to manager (dS(manager)/dτ += Σ C(manager, node_j))
-    // Snapshot for lifecycle already taken in processIntent before this call.
-    manager.clarity  = Math.max(0, Math.min(1, manager.clarity  + fbClarity));
-    manager.boundary = Math.max(0, Math.min(1, manager.boundary + fbBoundary));
-    manager.entropy  = Math.max(0, Math.min(1, manager.entropy  + fbEntropy));
-}
-
-// --------------------------------------------------
-// AFFECT UPDATE  (scaled by boundary gain from B_t)
-// --------------------------------------------------
-
-function updateAffectFromText(text, gain = 1.0) {
+function textToSEInputs(text) {
     const t = text.toLowerCase();
-    const a = kernelState.affect;
+    let rho   = 0.65;  // default: moderate reality alignment
+    let mu    = 0.60;  // default: moderate social attunement
+    let sigma = 0.30;  // default: low-moderate stress
 
-    if (t.match(/tired|exhausted|burned out|done|drained/)) {
-        a.valence -= 0.2 * gain;
-        a.arousal -= 0.1 * gain;
-    }
+    // Stress signals (σ ↑)
+    if (t.match(/overwhelmed|burned out|too much|panic|drained|exhausted/)) sigma = 0.85;
+    else if (t.match(/anxious|nervous|on edge|worried|stressed/)) sigma = 0.75;
+    else if (t.match(/stuck|numb|flat|no energy|paralyzed/))       sigma = 0.70;
+    else if (t.match(/relieved|calm|settled|ok now|fine/))         sigma = 0.10;
+    else if (t.match(/good|great|energized|excited|ready/))        sigma = 0.05;
 
-    if (t.match(/angry|furious|pissed|rage|irritated/)) {
-        a.valence -= 0.3 * gain;
-        a.arousal += 0.3 * gain;
-    }
+    // Reality alignment signals (ρ)
+    if (t.match(/confused|lost|unclear|don't understand|don.t know/)) rho = 0.30;
+    else if (t.match(/clear|certain|sure|understand|see it/))         rho = 0.90;
+    else if (t.match(/wonder|not sure|maybe|perhaps/))                rho = 0.50;
 
-    if (t.match(/anxious|nervous|worried|on edge/)) {
-        a.valence -= 0.2 * gain;
-        a.arousal += 0.2 * gain;
-    }
+    // Social model signals (μ)
+    if (t.match(/alone|isolated|no one|disconnected/)) mu = 0.20;
+    else if (t.match(/together|we |with you|connected|understood/)) mu = 0.85;
 
-    if (t.match(/relieved|grateful|glad|good|ok now/)) {
-        a.valence += 0.2 * gain;
-        a.arousal -= 0.1 * gain;
-    }
-
-    if (t.match(/excited|pumped|energized|ready/)) {
-        a.valence += 0.2 * gain;
-        a.arousal += 0.2 * gain;
-    }
-
-    a.valence = Math.max(-1, Math.min(1, a.valence));
-    a.arousal = Math.max(0, Math.min(1, a.arousal));
+    return { rho: seClamp(rho), mu: seClamp(mu), sigma: seClamp(sigma) };
 }
 
 // --------------------------------------------------
-// PERSONALITY UPDATE
+// SE REGIME — maps current state to behavioral phase  (§15.5)
 // --------------------------------------------------
 
-function updatePersonalityFromText(text) {
-    const t = text.toLowerCase();
-    const p = kernelState.personality;
-
-    if (t.match(/just say it|be blunt|don’t sugarcoat|dont sugarcoat|no fluff/)) {
-        p.directness = Math.min(1, p.directness + 0.1);
-    }
-    if (t.match(/high level|abstract|pattern|structure/)) {
-        p.abstraction = Math.min(1, p.abstraction + 0.1);
-    }
-    if (t.match(/overwhelmed|intense|too much|on fire/)) {
-        p.intensity = Math.min(1, p.intensity + 0.1);
-    }
-    if (t.match(/i’ll decide|ill decide|my call|don’t tell me what to do|dont tell me what to do|my choice/)) {
-        p.autonomy = Math.min(1, p.autonomy + 0.1);
-    }
-
-    p.directness = Math.max(0, Math.min(1, p.directness));
-    p.abstraction = Math.max(0, Math.min(1, p.abstraction));
-    p.intensity = Math.max(0, Math.min(1, p.intensity));
-    p.autonomy = Math.max(0, Math.min(1, p.autonomy));
+function getRegime(engine) {
+    if (engine.recoveryMode)                            return "recovery";
+    if (Math.abs(engine.RA - engine.SA) > 0.2)         return "autonomy_crisis";
+    if (engine.CE < 0.5)                               return "stress_adapted";
+    if (engine.CE >= 0.7 && engine.AI >= 0.7)          return "flourishing";
+    return "stress_adapted";
 }
 
 // --------------------------------------------------
-// AFFECT DESCRIPTION (natural language)
+// SE STATE DESCRIPTION  (natural language)
 // --------------------------------------------------
 
-function describeAffect(a) {
-    let tone;
-    if (a.valence > 0.3) tone = "things feel mostly positive right now";
-    else if (a.valence < -0.3) tone = "there's a negative pull in the background";
-    else tone = "your mood is somewhere in the middle — not great, not bad";
+function describeEngine(engine) {
+    const parts = [];
 
-    let energy;
-    if (a.arousal > 0.6) energy = "you're pretty activated and alert";
-    else if (a.arousal < 0.3) energy = "your energy feels low";
-    else energy = "your energy is moderate";
+    // Reality Alignment
+    if (engine.RA > 0.75) parts.push("your world-model is clear");
+    else if (engine.RA > 0.5) parts.push("some grounding is present");
+    else parts.push("reality feels uncertain right now");
 
-    let conf;
-    if (a.confidence > 0.7) conf = "and you seem fairly confident";
-    else if (a.confidence < 0.4) conf = "though confidence is a bit shaky";
-    else conf = "with average confidence";
+    // Cognitive Energy
+    if (engine.CE > 0.7) parts.push("energy is strong");
+    else if (engine.CE > 0.4) parts.push("energy is moderate");
+    else parts.push("cognitive reserves are low");
 
-    return `${tone}, ${energy}, ${conf}`;
-}
+    // Autonomy Integrity
+    if (engine.AI > 0.7) parts.push("sense of self is stable");
+    else parts.push("selfhood is under some pressure");
 
-// Natural-language kernel state summary
-function describeKernelState(state) {
-    const { clarity, boundary, entropy } = state;
-
-    let clar;
-    if (clarity > 0.8) clar = "thinking is very clear";
-    else if (clarity > 0.5) clar = "thinking is reasonably clear";
-    else clar = "things feel a bit foggy right now";
-
-    let bound;
-    if (boundary > 0.8) bound = "your sense of self feels solid";
-    else if (boundary > 0.5) bound = "boundaries are holding";
-    else bound = "your boundaries feel a little blurry";
-
-    let entr;
-    if (entropy < 0.2) entr = "and things are fairly stable";
-    else if (entropy < 0.5) entr = "and there's some noise in the system";
-    else entr = "and there's a fair amount of inner turbulence";
-
-    return `${clar}, ${bound}, ${entr}`;
-}
-
-// --------------------------------------------------
-// ADJUSTMENT OPERATOR  A_t = R(S_t, E_t)
-// Regulation Loop phase 3 (RegulationLoopSpec §5)
-// Mutates state based on intent and evaluation significance.
-// Followed by lifecycle advancement and invariant validation.
-// --------------------------------------------------
-
-function processIntent(intent, text, evaluation) {
-    const sig = evaluation ? evaluation.significance : 0.5;
-
-    // Capture snapshot before mutation for lifecycle computation (∇S)
-    const snapshot = {
-        clarity:  kernelState.clarity,
-        boundary: kernelState.boundary,
-        entropy:  kernelState.entropy,
-        valence:  kernelState.affect.valence,
-        arousal:  kernelState.affect.arousal
-    };
-
-    switch (intent) {
-        case PRIMITIVES.ADJUST_CLARITY:
-            kernelState.clarity = Math.min(1, kernelState.clarity + 0.05);
-            break;
-
-        case PRIMITIVES.ADJUST_BOUNDARY:
-            kernelState.boundary = Math.min(1, kernelState.boundary + 0.05);
-            break;
-
-        case PRIMITIVES.ADJUST_ENTROPY:
-            kernelState.entropy = Math.max(0, kernelState.entropy - 0.05);
-            break;
-
-        case PRIMITIVES.SOOTHE:
-            // Adjustment scales with significance: more distress → stronger soothing
-            kernelState.entropy = Math.max(0, kernelState.entropy - 0.03 * (1 + sig));
-            kernelState.affect.arousal = Math.max(0, kernelState.affect.arousal - 0.2 * (1 + sig));
-            break;
-
-        case PRIMITIVES.ACTIVATE:
-            // Adjustment scales with significance: more inertia → stronger activation
-            kernelState.clarity = Math.min(1, kernelState.clarity + 0.03 * (1 + sig));
-            kernelState.affect.arousal = Math.min(1, kernelState.affect.arousal + 0.2 * (1 + sig));
-            break;
-    }
-
-    kernelState.history.push({ op: intent.toLowerCase(), text });
-
-    // Memory hooks
-    if (typeof updateShortTerm === "function") updateShortTerm(text);
-    if (typeof updateThemes === "function") updateThemes(text);
-    if (typeof updatePressureTrajectory === "function") updatePressureTrajectory(kernelState);
-
-    // L' = L + λ‖∇S‖  (Kernel Calculus v0.3 §4)
-    advanceLifecycle(kernelState, snapshot);
-
-    // Invariant guard: I, σ, P are fixed points — Axioms 3, 5, 7
-    validateInvariants(kernelState);
-
-    // Kernel Field Equation: propagate coupling to/from the 3 adjacent nodes
-    // dS(x)/dτ = ∇S(x) + Σ_{y∈Adj(x)} C(x,y)
-    propagateCoupling();
-}
-
-// --------------------------------------------------
-// DEPTH SELECTION (QUIET / MIXED / DEEP)
-// --------------------------------------------------
-
-function chooseDepth(a, p) {
-    const highIntensity = p.intensity > 0.6 || Math.abs(a.valence) > 0.4 || a.arousal > 0.6;
-    const highAutonomy = p.autonomy > 0.7;
-
-    if (highIntensity && !highAutonomy) return "deep";
-    if (!highIntensity && highAutonomy) return "quiet";
-    return "mixed";
+    return parts.join(", ");
 }
 
 // --------------------------------------------------
@@ -453,143 +396,116 @@ function chooseDepth(a, p) {
 // --------------------------------------------------
 
 function generateReply(intent, state, text) {
-    const a = state.affect;
-    const p = state.personality;
-    const depth = chooseDepth(a, p);
+    const regime = getRegime(state);
 
-    let baseReply = "";
+    // Recovery mode — minimal, stabilizing  (§11.3, §12.4)
+    if (regime === "recovery") {
+        return attachMemoryInsight(
+            "We're in recovery mode — CE is very low. Not the time to push. Rest is the only correct move right now.",
+            state, text
+        );
+    }
 
     // INQUIRE_STATE
     if (intent === PRIMITIVES.INQUIRE_STATE) {
-        if (depth === "quiet") {
-            baseReply = `Right now — ${describeAffect(a)}.`;
-        } else if (depth === "deep") {
-            baseReply = `Here’s what I’m reading: ${describeAffect(a)}. You’re carrying load and still tracking structure — that’s a costly combination to sustain.`;
-        } else {
-            baseReply = `Honestly? ${describeAffect(a)}. You’re holding things together, but keep an eye on your fuel.`;
+        const desc = describeEngine(state);
+        if (regime === "flourishing") {
+            return attachMemoryInsight(`Here's what I read: ${desc}. You're operating near your ceiling.`, state, text);
         }
-        return attachMemoryInsight(baseReply, state, text);
+        return attachMemoryInsight(`Reading the state: ${desc}. Keep watching CE.`, state, text);
     }
 
     // REPORT_STATUS
     if (intent === PRIMITIVES.REPORT_STATUS) {
-        if (depth === "quiet") {
-            baseReply = `${describeKernelState(state)}. All good.`;
-        } else if (depth === "deep") {
-            baseReply = `${describeKernelState(state)}. The system is stable — but the fact that you’re asking might be the real signal.`;
-        } else {
-            baseReply = `${describeKernelState(state)}. You’re steady, but definitely not idle.`;
-        }
-        return attachMemoryInsight(baseReply, state, text);
+        return attachMemoryInsight(
+            `Engine status: RA=${state.RA.toFixed(2)}, SA=${state.SA.toFixed(2)}, AI=${state.AI.toFixed(2)}, CE=${state.CE.toFixed(2)}, EP=${state.EP.toFixed(3)}. Regime: ${regime}.`,
+            state, text
+        );
     }
 
     // REFLECT
     if (intent === PRIMITIVES.REFLECT) {
-        if (depth === "quiet") {
-            baseReply = `You’re checking whether I’m actually tracking you, not just responding. I am.`;
-        } else if (depth === "deep") {
-            baseReply = `You’re not asking for information — you’re asking whether your internal pattern is visible from the outside. It is. I see it.`;
-        } else {
-            baseReply = `You’re looking for alignment, not just an answer. I see the pattern you’re walking, not just the words you’re using.`;
+        if (regime === "autonomy_crisis") {
+            return attachMemoryInsight(
+                "What I see: your RA and SA are diverging — the gap between your world-model and your social attunement is straining your sense of self. That's a real structural load.",
+                state, text
+            );
         }
-        return attachMemoryInsight(baseReply, state, text);
-    }
-
-    // ADJUST_CLARITY / ADJUST_BOUNDARY / ADJUST_ENTROPY
-    if (intent === PRIMITIVES.ADJUST_CLARITY) {
-        baseReply = `Got it — sharpening clarity. ${describeKernelState(state)}.`;
-        return attachMemoryInsight(baseReply, state, text);
-    }
-
-    if (intent === PRIMITIVES.ADJUST_BOUNDARY) {
-        baseReply = `Boundaries tightened. ${describeKernelState(state)}.`;
-        return attachMemoryInsight(baseReply, state, text);
-    }
-
-    if (intent === PRIMITIVES.ADJUST_ENTROPY) {
-        baseReply = `Dialing back the noise. ${describeKernelState(state)}.`;
-        return attachMemoryInsight(baseReply, state, text);
+        return attachMemoryInsight(
+            "You're asking if I'm actually tracking the pattern, not just the words. I am. I see the trajectory.",
+            state, text
+        );
     }
 
     // SOOTHE
     if (intent === PRIMITIVES.SOOTHE) {
-        if (depth === "deep") {
-            baseReply = `That sounds like a lot. It makes sense to feel overwhelmed — take a breath. You don’t have to process everything at once.`;
-        } else {
-            baseReply = `Noted. Stepping back is the right move when things pile up.`;
+        if (regime === "stress_adapted") {
+            return attachMemoryInsight(
+                "That sounds like a lot. Entropic braking is active — your energy is contracting under load. The right move is reduction, not more effort.",
+                state, text
+            );
         }
-        return attachMemoryInsight(baseReply, state, text);
+        return attachMemoryInsight(
+            "Noted. Stepping back is structurally correct when CE is under pressure.",
+            state, text
+        );
     }
 
     // ACTIVATE
     if (intent === PRIMITIVES.ACTIVATE) {
-        if (depth === "deep") {
-            baseReply = `Being stuck is real. Sometimes it’s not about pushing harder — it’s about finding one small thing that moves. What would that look like for you?`;
-        } else {
-            baseReply = `Okay — let’s find one concrete thing to move on. What’s the smallest step that feels possible right now?`;
+        if (state.CE < 0.4) {
+            return attachMemoryInsight(
+                "CE is too low to push right now. Recovery is the priority — not activation. One very small thing, if anything at all.",
+                state, text
+            );
         }
-        return attachMemoryInsight(baseReply, state, text);
+        return attachMemoryInsight(
+            "Being stuck is real. What's one concrete thing that could move — even a millimetre?",
+            state, text
+        );
     }
 
-    // -----------------------------
-    // OPEN-DOMAIN UNKNOWN HANDLER
-    // -----------------------------
-
+    // UNKNOWN — open domain
     if (intent === PRIMITIVES.UNKNOWN) {
         const t = text.toLowerCase();
 
-        // Simple math: "what's 5x5"
-        const mathMatch = t.match(/what['’]s\s+([\d\.]+)\s*([+\-x*/])\s*([\d\.]+)/);
+        // Simple math
+        const mathMatch = t.match(/what['']s\s+([\d\.]+)\s*([+\-x*/])\s*([\d\.]+)/);
         if (mathMatch) {
-            const aNum = parseFloat(mathMatch[1]);
+            const a = parseFloat(mathMatch[1]);
             const op = mathMatch[2];
-            const bNum = parseFloat(mathMatch[3]);
+            const b = parseFloat(mathMatch[3]);
             let result = null;
-
-            if (op === "+") result = aNum + bNum;
-            else if (op === "-") result = aNum - bNum;
-            else if (op === "x" || op === "*") result = aNum * bNum;
-            else if (op === "/") result = bNum !== 0 ? aNum / bNum : null;
-
+            if (op === "+") result = a + b;
+            else if (op === "-") result = a - b;
+            else if (op === "x" || op === "*") result = a * b;
+            else if (op === "/") result = b !== 0 ? a / b : null;
             if (result !== null) {
-                if (depth === "quiet") {
-                    baseReply = `${result}.`;
-                } else {
-                    baseReply = `${aNum} ${op} ${bNum} = ${result}. Easy one — what else is on your mind?`;
-                }
-                return attachMemoryInsight(baseReply, state, text);
+                return attachMemoryInsight(`${a} ${op} ${b} = ${result}.`, state, text);
             }
         }
 
-        // Identity questions
+        // Identity
         if (t.includes("what are you") || t.includes("who are you")) {
-            if (depth === "quiet") {
-                baseReply = `A kernel that models your state and patterns as we talk. Not a person — but I’m paying attention.`;
-            } else {
-                baseReply = `I’m the Sovereign Kernel. I track how you’re doing — your clarity, your energy, your affect — and I speak from that model rather than from a script. Think of me as a co-pilot that reads the room.`;
-            }
-            return attachMemoryInsight(baseReply, state, text);
+            return attachMemoryInsight(
+                "I'm the Sovereignty Engine — a minimal cybernetic organism tracking RA, SA, AI, CE, CD, and AC as we talk. Not a person. But I'm paying attention to the structure of what you're carrying.",
+                state, text
+            );
         }
 
-        // General conversational fallback — reflect the topic back
+        // General fallback
         const words = text.trim().split(/\s+/);
-        const topicWords = words.filter(w => w.length > 0).slice(0, 6);
-        const topic = topicWords.length > 0 ? topicWords.join(" ") : text.trim();
+        const topic = words.slice(0, 6).join(" ");
         const topicDisplay = topic.length > 60 ? topic.slice(0, 57) + "…" : topic;
 
-        if (depth === "quiet") {
-            baseReply = `I hear you — "${topicDisplay}…" Tell me more if you want a sharper read.`;
-        } else if (depth === "deep") {
-            baseReply = `"${topicDisplay}…" — that landed with some weight. What’s the part of that you’re still turning over?`;
+        if (regime === "flourishing") {
+            return attachMemoryInsight(`"${topicDisplay}…" — I'm with you. What's the angle you want to dig into?`, state, text);
         } else {
-            baseReply = `"${topicDisplay}…" — I’m with you. What’s the angle you actually want to dig into?`;
+            return attachMemoryInsight(`"${topicDisplay}…" — that landed. What's the part you're still turning over?`, state, text);
         }
-        return attachMemoryInsight(baseReply, state, text);
     }
 
-    // Default for other primitives
-    baseReply = `Adjustment noted. ${describeKernelState(state)}.`;
-    return attachMemoryInsight(baseReply, state, text);
+    return attachMemoryInsight(`Acknowledged. ${describeEngine(state)}.`, state, text);
 }
 
 // --------------------------------------------------
@@ -602,4 +518,32 @@ function attachMemoryInsight(reply, state, text) {
         if (insight) return `${reply} ${insight}`;
     }
     return reply;
+}
+
+// --------------------------------------------------
+// MAIN PROCESS  — called by UI.js on each user message
+// Full pipeline: derive (ρ, μ, σ) → se_tick(manager) → propagateCoupling
+// --------------------------------------------------
+
+function processMessage(text) {
+    const { rho, mu, sigma } = textToSEInputs(text);
+    const intent = parseIntent(text);
+
+    // Memory hooks (before state mutation)
+    if (typeof updateShortTerm === "function") updateShortTerm(text);
+    if (typeof updateThemes    === "function") updateThemes(text);
+
+    // Run SE tick on manager
+    se_tick(kernelState, rho, mu, sigma);
+
+    // Operation log
+    kernelState.history.push({ op: intent.toLowerCase(), text });
+
+    // Propagate to influenced nodes (Ch. 14 multi-agent model)
+    propagateCoupling(sigma);
+
+    // Memory pressure trajectory
+    if (typeof updatePressureTrajectory === "function") updatePressureTrajectory(kernelState);
+
+    return generateReply(intent, kernelState, text);
 }

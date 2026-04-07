@@ -1,15 +1,32 @@
+// =============================================================
+// SOVEREIGNTY ENGINE vC5.3  —  VISUALIZER
+// Reference: "THE SOVEREIGNTY ENGINE vC5.3" by Gnome Badhi
+// =============================================================
+//
+// 2D panel: RA (x-axis) vs SA (y-axis) — the epistemic/social plane.
+//   AI drives the color; EP drives the marker size.
+//
+// 3D panel: All 4 SE instances plotted in (RA, CE, AI) space.
+//   Manager: large bright node. Nodes: smaller colored nodes.
+//   Coupling lines: ρ/μ flow from manager → each node.
+//   Opacity of coupling lines reflects the relative SA of each node.
+// =============================================================
+
 // --------------------------------------------------
-// 2D AFFECT FIELD
+// 2D  —  RA × SA epistemic/social plane  (§8.1, §8.2, §8.3)
+// X-axis: Reality Alignment (RA)
+// Y-axis: Shared Awareness (SA)
+// Color:  AI — green (high) → orange (low)
+// Size:   EP — larger dot = higher emergent preservation
 // --------------------------------------------------
 
 const canvas2d = document.getElementById("viz-2d");
-const ctx2d = canvas2d.getContext("2d");
+const ctx2d    = canvas2d.getContext("2d");
 
 function draw2D(state) {
     if (!canvas2d) return;
 
-    // Resize to container
-    canvas2d.width = canvas2d.clientWidth;
+    canvas2d.width  = canvas2d.clientWidth;
     canvas2d.height = canvas2d.clientHeight;
 
     const w = canvas2d.width;
@@ -17,63 +34,68 @@ function draw2D(state) {
 
     ctx2d.clearRect(0, 0, w, h);
 
-    // ------------------------------
-    // Affect values
-    // ------------------------------
+    // --- Phase boundary lines (§7.3) ---
+    // Autonomy bifurcation: |RA - SA| = 0.2
+    ctx2d.strokeStyle = "rgba(255, 200, 60, 0.15)";
+    ctx2d.lineWidth = 1;
+    ctx2d.setLineDash([4, 6]);
+    // RA - SA = +0.2  → SA = RA - 0.2
+    ctx2d.beginPath();
+    ctx2d.moveTo(w * 0.2, h * 0.0);
+    ctx2d.lineTo(w * 1.0, h * 0.8);
+    ctx2d.stroke();
+    // RA - SA = -0.2  → SA = RA + 0.2
+    ctx2d.beginPath();
+    ctx2d.moveTo(w * 0.0, h * 0.2);
+    ctx2d.lineTo(w * 0.8, h * 1.0);
+    ctx2d.stroke();
+    ctx2d.setLineDash([]);
 
-    const valence = (state.affect.valence + 1) / 2; // map -1..1 → 0..1
-    const arousal = state.affect.arousal;           // already 0..1
+    // --- RA bar ---
+    const raWidth = w * state.RA;
+    ctx2d.fillStyle = `rgba(0, 220, 180, ${0.10 + state.RA * 0.25})`;
+    ctx2d.fillRect(0, 0, raWidth, h * 0.42);
 
-    // ------------------------------
-    // Valence bar (green → red)
-    // ------------------------------
+    // --- SA bar ---
+    const saHeight = h * state.SA;
+    ctx2d.fillStyle = `rgba(80, 140, 255, ${0.10 + state.SA * 0.25})`;
+    ctx2d.fillRect(0, h - saHeight, w * 0.42, saHeight);
 
-    const valenceColor = state.affect.valence >= 0
-        ? `rgba(0, 255, 180, ${0.15 + valence * 0.25})`
-        : `rgba(255, 80, 80, ${0.15 + (1 - valence) * 0.25})`;
-
-    ctx2d.fillStyle = valenceColor;
-    ctx2d.fillRect(0, 0, w * valence, h * 0.42);
-
-    // ------------------------------
-    // Arousal bar (blue intensity)
-    // ------------------------------
-
-    ctx2d.fillStyle = `rgba(80, 160, 255, ${0.12 + arousal * 0.3})`;
-    ctx2d.fillRect(0, h * 0.48, w * arousal, h * 0.42);
-
-    // ------------------------------
-    // Labels
-    // ------------------------------
-
-    ctx2d.fillStyle = "rgba(200, 255, 240, 0.8)";
+    // --- Labels ---
+    ctx2d.fillStyle = "rgba(200, 255, 240, 0.85)";
     ctx2d.font = "14px JetBrains Mono";
-
-    ctx2d.fillText(`Valence: ${state.affect.valence.toFixed(2)}`, 10, 20);
-    ctx2d.fillText(`Arousal: ${state.affect.arousal.toFixed(2)}`, 10, h * 0.48 + 20);
+    ctx2d.fillText(`RA: ${state.RA.toFixed(2)}`,  10, 20);
+    ctx2d.fillText(`SA: ${state.SA.toFixed(2)}`,  10, h * 0.5 + 20);
+    ctx2d.fillText(`AI: ${state.AI.toFixed(2)}`,  10, 40);
+    ctx2d.fillText(`CE: ${state.CE.toFixed(2)}`,  10, 60);
+    ctx2d.fillText(`EP: ${state.EP.toFixed(3)}`,  10, 80);
+    if (state.recoveryMode) {
+        ctx2d.fillStyle = "rgba(255, 80, 80, 0.9)";
+        ctx2d.fillText("⚠ RECOVERY", 10, 100);
+    }
 }
 
 // --------------------------------------------------
-// 3D KERNEL SPACE (2D PROJECTION)
-// Maps formal kernel state (S, L) to visual space.
-// Axes: clarity (x), boundary (y), entropy (z/depth)
-// Lifecycle L advances monotonically and is displayed as a label.
+// 3D  —  All 4 SE instances in (RA, CE, AI) space
+// X-axis: RA  (Reality Alignment)
+// Y-axis: 1-CE (inverted: low CE = bottom = depleted)
+// Depth / node size: AI
 //
-// Shows the full 4-kernel network:
-//   - manager (kernelState): large bright node
-//   - 3 influenced nodes (kernelNodes): smaller nodes
-//   - coupling lines C(x,y) between manager and each node
+// Manager: large teal node.
+// Nodes: smaller colored nodes.
+// Coupling lines: ρ/μ flow from manager → each node (§14.1-14.2).
 // --------------------------------------------------
 
 const canvas3d = document.getElementById("viz-3d");
-const ctx3d = canvas3d.getContext("2d");
+const ctx3d    = canvas3d.getContext("2d");
 
-function kernelToXY(state, w, h) {
-    const px = state.clarity;       // 0..1 → x position
-    const py = 1 - state.boundary;  // high boundary = top
+// Project an SE state to 2D canvas coordinates
+function seToXY(engine, w, h) {
+    const px = engine.RA;        // x-axis: RA
+    const py = 1 - engine.CE;    // y-axis: inverted CE (high CE = top)
     return {
-        x: w * (0.15 + px * 0.65),
-        y: h * (0.15 + py * 0.65)
+        x: w * (0.12 + px * 0.70),
+        y: h * (0.10 + py * 0.72)
     };
 }
 
@@ -88,19 +110,42 @@ function draw3D(state) {
 
     ctx3d.clearRect(0, 0, w, h);
 
-    const managerPos = kernelToXY(state, w, h);
+    // Phase boundary: CE = 0.2 (collapse threshold, §7.3)
+    const collapseY = h * (0.10 + (1 - 0.2) * 0.72);
+    ctx3d.strokeStyle = "rgba(255, 80, 80, 0.15)";
+    ctx3d.lineWidth = 1;
+    ctx3d.setLineDash([4, 6]);
+    ctx3d.beginPath();
+    ctx3d.moveTo(w * 0.12, collapseY);
+    ctx3d.lineTo(w * 0.82, collapseY);
+    ctx3d.stroke();
+    // Phase boundary: CE = 0.7 (stress threshold, §7.3)
+    const stressY = h * (0.10 + (1 - 0.7) * 0.72);
+    ctx3d.strokeStyle = "rgba(255, 180, 60, 0.12)";
+    ctx3d.beginPath();
+    ctx3d.moveTo(w * 0.12, stressY);
+    ctx3d.lineTo(w * 0.82, stressY);
+    ctx3d.stroke();
+    ctx3d.setLineDash([]);
 
-    // ------------------------------
-    // Coupling lines: manager ↔ each node
-    // Opacity reflects coupling permeability: min(B_manager, B_node)
-    // ------------------------------
-    for (const node of kernelNodes) {
-        const nodePos = kernelToXY(node, w, h);
-        const permeability = Math.min(state.boundary, node.boundary);
+    const managerPos = seToXY(state, w, h);
 
-        ctx3d.strokeStyle = `rgba(0, 200, 255, ${0.05 + permeability * 0.25})`;
+    // --- Coupling lines: manager → each node (ρ/μ flow) ---
+    const nodeColors = [
+        { r: 80,  g: 200, b: 255 },
+        { r: 160, g: 100, b: 255 },
+        { r: 255, g: 180, b: 60  }
+    ];
+
+    for (let i = 0; i < kernelNodes.length; i++) {
+        const node    = kernelNodes[i];
+        const nodePos = seToXY(node, w, h);
+        const c       = nodeColors[i];
+        const opacity = 0.06 + node.SA * 0.22; // opacity reflects SA coupling strength
+
+        ctx3d.strokeStyle = `rgba(${c.r},${c.g},${c.b},${opacity})`;
         ctx3d.lineWidth = 1;
-        ctx3d.setLineDash([3, 5]);
+        ctx3d.setLineDash([3, 6]);
         ctx3d.beginPath();
         ctx3d.moveTo(managerPos.x, managerPos.y);
         ctx3d.lineTo(nodePos.x, nodePos.y);
@@ -108,81 +153,86 @@ function draw3D(state) {
         ctx3d.setLineDash([]);
     }
 
-    // ------------------------------
-    // Draw 3 influenced nodes
-    // ------------------------------
-    const nodeColors = [
-        "rgba(80, 200, 255,",
-        "rgba(160, 100, 255,",
-        "rgba(255, 180, 60,"
-    ];
-
+    // --- Influenced nodes ---
     for (let i = 0; i < kernelNodes.length; i++) {
-        const node = kernelNodes[i];
-        const pos  = kernelToXY(node, w, h);
-        const pz   = 1 - node.entropy;
-        const shade = 0.2 + pz * 0.45;
-        const radius = 5 + pz * 6;
-        const color = nodeColors[i];
+        const node    = kernelNodes[i];
+        const pos     = seToXY(node, w, h);
+        const c       = nodeColors[i];
+        const aiShade = 0.20 + node.AI * 0.45;
+        const radius  = 4 + node.AI * 7;
 
-        ctx3d.fillStyle = `${color}${shade})`;
+        ctx3d.fillStyle = `rgba(${c.r},${c.g},${c.b},${aiShade})`;
         ctx3d.beginPath();
         ctx3d.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
         ctx3d.fill();
 
-        // Node lifecycle ring
-        const lRing = radius + 3 + Math.min(node.lifecycle * 8, 20);
-        ctx3d.strokeStyle = `${color}${0.05 + Math.min(node.lifecycle * 0.03, 0.12)})`;
+        // Lifecycle ring
+        const lRing = radius + 3 + Math.min(node.lifecycle * 6, 18);
+        ctx3d.strokeStyle = `rgba(${c.r},${c.g},${c.b},${0.05 + Math.min(node.lifecycle * 0.02, 0.12)})`;
         ctx3d.lineWidth = 1;
         ctx3d.beginPath();
         ctx3d.arc(pos.x, pos.y, lRing, 0, Math.PI * 2);
         ctx3d.stroke();
 
-        // Node id label
-        ctx3d.fillStyle = `${color}0.7)`;
-        ctx3d.font = "11px JetBrains Mono";
-        ctx3d.fillText(node.id, pos.x + radius + 3, pos.y + 4);
+        // Recovery indicator
+        if (node.recoveryMode) {
+            ctx3d.fillStyle = "rgba(255, 80, 80, 0.6)";
+            ctx3d.font = "10px JetBrains Mono";
+            ctx3d.fillText("↯", pos.x + radius + 2, pos.y + 4);
+        }
+
+        // Node label
+        ctx3d.fillStyle = `rgba(${c.r},${c.g},${c.b},0.75)`;
+        ctx3d.font = "10px JetBrains Mono";
+        ctx3d.fillText(node.id, pos.x + radius + 2, pos.y - 4);
     }
 
-    // ------------------------------
-    // Draw managing kernel (manager)
-    // ------------------------------
-    const pz = 1 - state.entropy;
-    const depthShade = 0.2 + pz * 0.5;
-    const radius = 10 + pz * 10;
+    // --- Manager node ---
+    const aiShade  = 0.20 + state.AI * 0.50;
+    const radius   = 10 + state.AI * 10;
 
-    ctx3d.shadowColor = "rgba(0, 255, 200, 0.25)";
-    ctx3d.shadowBlur = 16;
-    ctx3d.fillStyle = `rgba(0, 255, 200, ${depthShade})`;
+    ctx3d.shadowColor = "rgba(0, 255, 200, 0.3)";
+    ctx3d.shadowBlur  = 18;
+    ctx3d.fillStyle   = `rgba(0, 255, 200, ${aiShade})`;
     ctx3d.beginPath();
     ctx3d.arc(managerPos.x, managerPos.y, radius, 0, Math.PI * 2);
     ctx3d.fill();
     ctx3d.shadowBlur = 0;
 
-    // Manager lifecycle ring
-    const lifecycleRadius = radius + 4 + Math.min(state.lifecycle * 12, 30);
-    ctx3d.strokeStyle = `rgba(0, 255, 200, ${0.08 + Math.min(state.lifecycle * 0.04, 0.18)})`;
+    // Lifecycle ring (manager)
+    const lRing = radius + 4 + Math.min(state.lifecycle * 10, 28);
+    ctx3d.strokeStyle = `rgba(0, 255, 200, ${0.07 + Math.min(state.lifecycle * 0.03, 0.16)})`;
     ctx3d.lineWidth = 1;
     ctx3d.beginPath();
-    ctx3d.arc(managerPos.x, managerPos.y, lifecycleRadius, 0, Math.PI * 2);
+    ctx3d.arc(managerPos.x, managerPos.y, lRing, 0, Math.PI * 2);
     ctx3d.stroke();
+
+    // Recovery indicator
+    if (state.recoveryMode) {
+        ctx3d.fillStyle = "rgba(255, 80, 80, 0.9)";
+        ctx3d.font = "12px JetBrains Mono";
+        ctx3d.fillText("⚠ RECOVERY", managerPos.x + radius + 4, managerPos.y + 4);
+    }
 
     // Manager label
     ctx3d.fillStyle = "rgba(0, 255, 200, 0.75)";
+    ctx3d.font = "10px JetBrains Mono";
+    ctx3d.fillText("manager", managerPos.x + radius + 3, managerPos.y - 4);
+
+    // --- Axis labels ---
+    ctx3d.fillStyle = "rgba(200, 255, 240, 0.50)";
     ctx3d.font = "11px JetBrains Mono";
-    ctx3d.fillText("manager", managerPos.x + radius + 3, managerPos.y + 4);
+    ctx3d.fillText("RA →", w * 0.82, h * 0.10 + 12);
+    ctx3d.fillText("CE ↑", w * 0.12 - 2, h * 0.08);
+    ctx3d.fillText("0.2", w * 0.83, collapseY - 2);
+    ctx3d.fillText("0.7", w * 0.83, stressY - 2);
 
-    // ------------------------------
-    // State labels (manager)
-    // ------------------------------
-
-    ctx3d.fillStyle = "rgba(200, 255, 240, 0.8)";
-    ctx3d.font = "14px JetBrains Mono";
-
-    ctx3d.fillText(`Clarity:   ${state.clarity.toFixed(2)}`,   10, 20);
-    ctx3d.fillText(`Boundary:  ${state.boundary.toFixed(2)}`,  10, 40);
-    ctx3d.fillText(`Entropy:   ${state.entropy.toFixed(2)}`,   10, 60);
-    ctx3d.fillText(`Lifecycle: ${state.lifecycle.toFixed(4)}`, 10, h - 10);
+    // --- Manager state summary ---
+    ctx3d.fillStyle = "rgba(200, 255, 240, 0.85)";
+    ctx3d.font = "13px JetBrains Mono";
+    ctx3d.fillText(`RA:${state.RA.toFixed(2)} SA:${state.SA.toFixed(2)}`, 10, 20);
+    ctx3d.fillText(`AI:${state.AI.toFixed(2)} CE:${state.CE.toFixed(2)}`, 10, 38);
+    ctx3d.fillText(`L: ${state.lifecycle.toFixed(4)}`,                     10, h - 10);
 }
 
 // --------------------------------------------------

@@ -579,9 +579,17 @@ function generateReply(intent, state, text) {
 }
 
 // --------------------------------------------------
-// MAIN PROCESS  \u2014 called by UI.js on each user message
-// Coordinates the SE tick and the Text-domain tick (TextKernel.js).
-// Returns { reply, txtAdj } so UI.js can log and annotate.
+// MAIN PROCESS  — called by UI.js on each user message
+//
+// Three-pass pipeline:
+//   Pass 1 — txt_tick(text)         TextKernel reads the input structurally
+//                                   → inputAdj, txtState updated
+//   Pass 2 — se_tick + generateReply  Kernel reasons emotionally/cognitively
+//                                   → rawReply
+//   Pass 3 — txt_translate_output   TextKernel translates the raw reply into
+//                                   the structurally-formed output for the user
+//
+// Returns { reply, txtAdj } so UI.js can log both kernel states.
 // --------------------------------------------------
 
 function processMessage(text) {
@@ -591,9 +599,10 @@ function processMessage(text) {
     if (typeof updateShortTerm === "function") updateShortTerm(text);
     if (typeof updateThemes    === "function") updateThemes(text);
 
-    // Text-domain tick (TextKernel.js) \u2014 must run before generateReply reads txtState
+    // Pass 1 — TextKernel: structural analysis of the input
     const txtAdj = txt_tick(text);
 
+    // Pass 2 — Kernel: emotional/cognitive reasoning → raw reply
     se_tick(kernelState, rho, mu, sigma);
 
     kernelState.history.push({ op: intent.toLowerCase(), text });
@@ -602,13 +611,15 @@ function processMessage(text) {
 
     if (typeof updatePressureTrajectory === "function") updatePressureTrajectory(kernelState);
 
-    const reply = generateReply(intent, kernelState, text);
-    const annotatedReply = applyTxtAnnotation(reply, txtAdj);
+    const rawReply = generateReply(intent, kernelState, text);
+
+    // Pass 3 — TextKernel: translate raw reply into structurally-formed output
+    const finalReply = txt_translate_output(rawReply, txtAdj);
 
     // Update conversation context for the next turn
-    conversationContext.lastKernelQuestion = extractClosingQuestion(reply);
+    conversationContext.lastKernelQuestion = extractClosingQuestion(rawReply);
     conversationContext.lastUserText       = text;
     conversationContext.turnCount         += 1;
 
-    return { reply: annotatedReply, txtAdj };
+    return { reply: finalReply, txtAdj };
 }

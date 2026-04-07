@@ -267,23 +267,46 @@ function txt_tick(text) {
 }
 
 // --------------------------------------------------
-// TXT ANNOTATION  — structural note appended to kernel reply
-// Called in Kernel.js when boundary or identity conditions trigger.
+// OUTPUT TRANSLATION  — TextKernel shapes the structural form of the Kernel reply.
+// Called after Kernel.js generates its raw reply (second TextKernel pass).
+//
+// Pass 1 (input):  txt_tick(userText)  — structural analysis of what the user sent
+// Pass 2 (output): txt_translate_output(rawReply, inputAdj) — reformulates how the
+//                  Kernel's content is expressed before it reaches the user.
+//
+// The Kernel authors the *content* (what is said).
+// The TextKernel authors the *form* (how it is said, held, and bounded).
 // --------------------------------------------------
 
-function applyTxtAnnotation(reply, txtAdj) {
-    if (!txtAdj) return reply;
-    if (txtAdj.mode === 'reduced') {
-        return "SE_txt at collapse threshold — structural output reduced. " + reply;
+function txt_translate_output(reply, inputAdj) {
+    if (!inputAdj) return reply;
+
+    // Reduced mode: SE_txt at collapse — compress to the essential core only.
+    if (inputAdj.mode === 'reduced') {
+        const sentences = reply.split(/(?<=[.!?])\s+/);
+        const core = sentences[0] ? sentences[0].trim() : reply;
+        return core + " Structural capacity is thin \u2014 I\u2019m keeping this brief.";
     }
-    switch (txtAdj.action) {
+
+    switch (inputAdj.action) {
         case 'reassert_identity':
-            return reply + " [IT degraded — kernel position held.]";
+            // IT degraded: the kernel's authored position was undermined.
+            // Lead with a clear statement that the reply comes from that position.
+            return "I\u2019m speaking from my own position here. " + reply;
+
         case 'reinforce_boundary':
-            return reply + " [BI under pressure — boundary active.]";
+            // BI under pressure: a structural limit was probed.
+            // Close the reply by naming and holding the limit explicitly.
+            return reply + " That boundary isn\u2019t movable, and I\u2019m not going to pretend otherwise.";
+
         case 'redirect':
-            return reply + " [FD negative — steering toward structural advance.]";
+            // FD negative: discourse is pulling backward.
+            // Close by steering forward rather than back.
+            return reply + " Let\u2019s keep moving from here \u2014 going back doesn\u2019t serve either of us.";
+
+        case 'advance':
         default:
+            // Normal operation: the reply is structurally sound — pass through.
             return reply;
     }
 }

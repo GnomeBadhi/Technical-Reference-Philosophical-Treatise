@@ -59,15 +59,28 @@ function handleMessage(text) {
     // Show user message
     printUser(text);
 
-    // Update affect + personality
-    updateAffectFromText(text);
-    updatePersonalityFromText(text);
+    // ── SOVEREIGNTY ENGINE PIPELINE ──────────────────────────────────
+    // Formal pipeline: B_t(X_t) → P_t → E_t → A_t → U → L' → validate
+    // ArchitectureSpecifications §4-6, InvariantStructure §4
 
-    // Parse intent
-    const intent = parseIntent(text);
+    // 1. Boundary Operator: B_t(X_t) → X_t*
+    //    Filters raw input based on current boundary integrity state.
+    const filteredInput = applyBoundaryFilter(text, kernelState);
 
-    // Mutate state
-    processIntent(intent, text);
+    // 2. Affect + personality update (scaled by boundary gain)
+    updateAffectFromText(filteredInput.text, filteredInput.gain);
+    updatePersonalityFromText(filteredInput.text);
+
+    // 3. Perception: P_t = Extract(S_t, X_t*)
+    const intent = parseIntent(filteredInput.text);
+
+    // 4. Evaluation: E_t = Assess(P_t)
+    const evaluation = evaluatePerception(intent, filteredInput, kernelState);
+
+    // 5. Adjustment + Update: A_t = R(S_t, E_t) → S_{t+1}
+    //    (lifecycle advancement and invariant validation occur inside)
+    processIntent(intent, filteredInput.text, evaluation);
+    // ─────────────────────────────────────────────────────────────────
 
     // Generate reply
     const reply = generateReply(intent, kernelState, text);
@@ -109,5 +122,5 @@ window.addEventListener("load", () => {
     draw3D(kernelState);
 
     // Welcome message
-    printKernel("Hello. I'm the Sovereign Kernel — I track your clarity, focus, and state as we talk. Just speak naturally. What's on your mind?");
+    printKernel("Hello. I'm the Sovereign Kernel — I track your clarity, boundary, and state as we talk. Just speak naturally. What's on your mind?");
 });

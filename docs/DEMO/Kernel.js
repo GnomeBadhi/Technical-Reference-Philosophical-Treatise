@@ -1,22 +1,36 @@
 // --------------------------------------------------
 // SOVEREIGN KERNEL STATE
+// K(x) = (I, B, S, σ, P, L)  — Kernel Calculus v0.3
 // --------------------------------------------------
 
 const kernelState = {
-    clarity: 0.8,
-    boundary: 0.75,
-    entropy: 0.12,
-    history: [],
+    // --- FORMAL INVARIANTS (Axioms 3, 4, 5, 7) ---
+    // These are fixed points of all lawful transformations.
+    // No operation may alter them. validateInvariants() enforces this.
+    identity:    1.0,   // I(x) — structural identity, fixed at instantiation (Axiom 3)
+    sovereignty: 1.0,   // σ(x) — authorship and agency, conserved (Axiom 5)
+    purity:      1.0,   // P(x) — pure core fixed point, cannot be degraded (Axiom 7)
+
+    // --- FORMAL VARIABLE: Lifecycle Position L(x) ---
+    // Monotonically advancing with structural change: L' = L + λ‖∇S‖ (Axiom 6)
+    lifecycle:   0.0,
+
+    // --- STATE VARIABLES S(x) ---
+    // The only components allowed to change via lawful operators.
+    clarity:     0.8,
+    boundary:    0.75,  // state representation of boundary integrity (not the operator B_t)
+    entropy:     0.12,
+    history:  [],
     affect: {
-        valence: 0.0,
-        arousal: 0.0,
+        valence:    0.0,
+        arousal:    0.0,
         confidence: 0.5
     },
     personality: {
-        directness: 0.5,
+        directness:  0.5,
         abstraction: 0.5,
-        intensity: 0.5,
-        autonomy: 0.7
+        intensity:   0.5,
+        autonomy:    0.7
     }
 };
 
@@ -79,36 +93,90 @@ function parseIntent(text) {
 }
 
 // --------------------------------------------------
-// AFFECT UPDATE
+// BOUNDARY OPERATOR  B_t : X_t → X_t*
+// Sovereignty Engine formal operator (ArchitectureSpec §4)
+// Filters raw input based on current boundary integrity state.
+// Strong boundary (→1.0) moderates affect; weak boundary (→0.0) amplifies it.
 // --------------------------------------------------
 
-function updateAffectFromText(text) {
+function applyBoundaryFilter(text, state) {
+    // gain factor: how strongly raw input bleeds into affect
+    // strong boundary → 0.5 gain (moderated); weak boundary → 1.0 gain (amplified)
+    const gain = 0.5 + (1 - state.boundary) * 0.5;
+    return { text, gain };
+}
+
+// --------------------------------------------------
+// EVALUATION OPERATOR  E_t = Assess(P_t)
+// Regulation Loop phase 2 (RegulationLoopSpec §4)
+// Assesses the significance of the perceived intent given current load.
+// --------------------------------------------------
+
+function evaluatePerception(intent, filteredInput, state) {
+    const load = Math.abs(state.affect.valence) + state.affect.arousal + state.entropy;
+    const significance = Math.min(1, (load / 2.5) * filteredInput.gain);
+    return { intent, significance, gain: filteredInput.gain };
+}
+
+// --------------------------------------------------
+// LIFECYCLE ADVANCEMENT  L' = L + λ‖∇S‖
+// Kernel Calculus v0.3 §4 — lifecycle is monotonically advancing
+// --------------------------------------------------
+
+function advanceLifecycle(state, snapshot) {
+    const delta = Math.abs(state.clarity  - snapshot.clarity)
+                + Math.abs(state.boundary - snapshot.boundary)
+                + Math.abs(state.entropy  - snapshot.entropy)
+                + Math.abs(state.affect.valence - snapshot.valence)
+                + Math.abs(state.affect.arousal - snapshot.arousal);
+    const lambda = 0.5;
+    state.lifecycle = Math.round((state.lifecycle + lambda * delta) * 10000) / 10000;
+}
+
+// --------------------------------------------------
+// INVARIANT VALIDATION  — Axioms 3, 4, 5, 7
+// The formal invariants (I, σ, P) are fixed points of all lawful transformations.
+// This guard ensures no operation inadvertently alters them.
+// --------------------------------------------------
+
+function validateInvariants(state) {
+    state.identity    = 1.0;
+    state.sovereignty = 1.0;
+    state.purity      = 1.0;
+    // lifecycle is monotone by construction in advanceLifecycle
+}
+
+// --------------------------------------------------
+// AFFECT UPDATE  (scaled by boundary gain from B_t)
+// --------------------------------------------------
+
+function updateAffectFromText(text, gain = 1.0) {
     const t = text.toLowerCase();
     const a = kernelState.affect;
 
     if (t.match(/tired|exhausted|burned out|done|drained/)) {
-        a.valence -= 0.2;
-        a.arousal -= 0.1;
+        a.valence -= 0.2 * gain;
+        a.arousal -= 0.1 * gain;
     }
 
     if (t.match(/angry|furious|pissed|rage|irritated/)) {
-        a.valence -= 0.3;
-        a.arousal += 0.3;
+        a.valence -= 0.3 * gain;
+        a.arousal += 0.3 * gain;
     }
 
     if (t.match(/anxious|nervous|worried|on edge/)) {
-        a.valence -= 0.2;
-        a.arousal += 0.2;
+        a.valence -= 0.2 * gain;
+        a.arousal += 0.2 * gain;
     }
 
     if (t.match(/relieved|grateful|glad|good|ok now/)) {
-        a.valence += 0.2;
-        a.arousal -= 0.1;
+        a.valence += 0.2 * gain;
+        a.arousal -= 0.1 * gain;
     }
 
     if (t.match(/excited|pumped|energized|ready/)) {
-        a.valence += 0.2;
-        a.arousal += 0.2;
+        a.valence += 0.2 * gain;
+        a.arousal += 0.2 * gain;
     }
 
     a.valence = Math.max(-1, Math.min(1, a.valence));
@@ -188,10 +256,24 @@ function describeKernelState(state) {
 }
 
 // --------------------------------------------------
-// STATE MUTATION
+// ADJUSTMENT OPERATOR  A_t = R(S_t, E_t)
+// Regulation Loop phase 3 (RegulationLoopSpec §5)
+// Mutates state based on intent and evaluation significance.
+// Followed by lifecycle advancement and invariant validation.
 // --------------------------------------------------
 
-function processIntent(intent, text) {
+function processIntent(intent, text, evaluation) {
+    const sig = evaluation ? evaluation.significance : 0.5;
+
+    // Capture snapshot before mutation for lifecycle computation (∇S)
+    const snapshot = {
+        clarity:  kernelState.clarity,
+        boundary: kernelState.boundary,
+        entropy:  kernelState.entropy,
+        valence:  kernelState.affect.valence,
+        arousal:  kernelState.affect.arousal
+    };
+
     switch (intent) {
         case PRIMITIVES.ADJUST_CLARITY:
             kernelState.clarity = Math.min(1, kernelState.clarity + 0.05);
@@ -206,13 +288,15 @@ function processIntent(intent, text) {
             break;
 
         case PRIMITIVES.SOOTHE:
-            kernelState.entropy = Math.max(0, kernelState.entropy - 0.03);
-            kernelState.affect.arousal = Math.max(0, kernelState.affect.arousal - 0.2);
+            // Adjustment scales with significance: more distress → stronger soothing
+            kernelState.entropy = Math.max(0, kernelState.entropy - 0.03 * (1 + sig));
+            kernelState.affect.arousal = Math.max(0, kernelState.affect.arousal - 0.2 * (1 + sig));
             break;
 
         case PRIMITIVES.ACTIVATE:
-            kernelState.clarity = Math.min(1, kernelState.clarity + 0.03);
-            kernelState.affect.arousal = Math.min(1, kernelState.affect.arousal + 0.2);
+            // Adjustment scales with significance: more inertia → stronger activation
+            kernelState.clarity = Math.min(1, kernelState.clarity + 0.03 * (1 + sig));
+            kernelState.affect.arousal = Math.min(1, kernelState.affect.arousal + 0.2 * (1 + sig));
             break;
     }
 
@@ -222,6 +306,12 @@ function processIntent(intent, text) {
     if (typeof updateShortTerm === "function") updateShortTerm(text);
     if (typeof updateThemes === "function") updateThemes(text);
     if (typeof updatePressureTrajectory === "function") updatePressureTrajectory(kernelState);
+
+    // L' = L + λ‖∇S‖  (Kernel Calculus v0.3 §4)
+    advanceLifecycle(kernelState, snapshot);
+
+    // Invariant guard: I, σ, P are fixed points — Axioms 3, 5, 7
+    validateInvariants(kernelState);
 }
 
 // --------------------------------------------------

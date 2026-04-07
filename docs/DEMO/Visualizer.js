@@ -55,6 +55,9 @@ function draw2D(state) {
 
 // --------------------------------------------------
 // 3D KERNEL SPACE (2D PROJECTION)
+// Maps formal kernel state (S, L) to visual space.
+// Axes: clarity (x), boundary (y), entropy (z/depth)
+// Lifecycle L advances monotonically and is displayed as a label.
 // --------------------------------------------------
 
 const canvas3d = document.getElementById("viz-3d");
@@ -73,32 +76,44 @@ function draw3D(state) {
     ctx3d.clearRect(0, 0, w, h);
 
     // ------------------------------
-    // Personality → 3D coordinates
+    // Kernel state → 3D coordinates
+    // Clarity (x-axis), Boundary (y-axis), Entropy (depth/size)
     // ------------------------------
 
-    const px = state.personality.directness;   // 0..1
-    const py = state.personality.abstraction;  // 0..1
-    const pz = state.personality.intensity;    // 0..1
+    const px = state.clarity;           // 0..1 → x position
+    const py = 1 - state.boundary;      // 0..1 → y position (inverted: high boundary = top)
+    const pz = 1 - state.entropy;       // 0..1 → depth shading (low entropy = bright/stable)
 
-    // Project 3D → 2D
-    const x = w * (0.2 + px * 0.6);
-    const y = h * (0.2 + py * 0.6);
+    // Project 3D → 2D with isometric-style offset
+    const x = w * (0.15 + px * 0.65);
+    const y = h * (0.15 + py * 0.65);
 
-    // Depth shading
-    const depthShade = 0.25 + pz * 0.35;
+    // Radius grows with structural coherence (low entropy, high clarity)
+    const radius = 8 + pz * 10;
+
+    // Depth shading: high purity/low entropy → brighter
+    const depthShade = 0.2 + pz * 0.5;
 
     // ------------------------------
-    // Draw personality point
+    // Draw kernel state point
     // ------------------------------
 
     ctx3d.fillStyle = `rgba(0, 255, 200, ${depthShade})`;
     ctx3d.beginPath();
-    ctx3d.arc(x, y, 10 + pz * 8, 0, Math.PI * 2);
+    ctx3d.arc(x, y, radius, 0, Math.PI * 2);
     ctx3d.fill();
 
     // Soft glow
-    ctx3d.shadowColor = "rgba(0, 255, 200, 0.15)";
-    ctx3d.shadowBlur = 12;
+    ctx3d.shadowColor = "rgba(0, 255, 200, 0.2)";
+    ctx3d.shadowBlur = 14;
+
+    // Lifecycle trail — a faint ring showing how far L has advanced
+    const lifecycleRadius = radius + 4 + Math.min(state.lifecycle * 12, 30);
+    ctx3d.strokeStyle = `rgba(0, 255, 200, ${0.08 + Math.min(state.lifecycle * 0.04, 0.18)})`;
+    ctx3d.lineWidth = 1;
+    ctx3d.beginPath();
+    ctx3d.arc(x, y, lifecycleRadius, 0, Math.PI * 2);
+    ctx3d.stroke();
 
     // ------------------------------
     // Labels
@@ -108,9 +123,10 @@ function draw3D(state) {
     ctx3d.fillStyle = "rgba(200, 255, 240, 0.8)";
     ctx3d.font = "14px JetBrains Mono";
 
-    ctx3d.fillText(`Directness: ${px.toFixed(2)}`, 10, 20);
-    ctx3d.fillText(`Abstraction: ${py.toFixed(2)}`, 10, 40);
-    ctx3d.fillText(`Intensity: ${pz.toFixed(2)}`, 10, 60);
+    ctx3d.fillText(`Clarity:   ${state.clarity.toFixed(2)}`,  10, 20);
+    ctx3d.fillText(`Boundary:  ${state.boundary.toFixed(2)}`, 10, 40);
+    ctx3d.fillText(`Entropy:   ${state.entropy.toFixed(2)}`,  10, 60);
+    ctx3d.fillText(`Lifecycle: ${state.lifecycle.toFixed(4)}`, 10, h - 10);
 }
 
 // --------------------------------------------------

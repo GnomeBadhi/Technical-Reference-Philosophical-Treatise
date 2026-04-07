@@ -1,41 +1,39 @@
 /* -----------------------------
    Global
 ----------------------------- */
+
 body {
     margin: 0;
-    background: #0e0e0e;
-    color: #e0e0e0;
-    font-family: monospace;
-    height: 100vh;
-    overflow: hidden;
+    background: #050505;
+    color: #eee;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* -----------------------------
-   Grid Layout
------------------------------ */
 #layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 45vh 55vh;
     height: 100vh;
+    gap: 4px;
+    padding: 4px;
+    box-sizing: border-box;
 }
 
-/* -----------------------------
-   Panels
------------------------------ */
 #terminal,
 #state-panel,
 #canvas-panel,
 #webgl-panel {
-    border: 1px solid #333;
-    padding: 10px;
-    overflow: hidden;
+    border: 1px solid #222;
+    background: #0b0b0b;
+    padding: 8px;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* -----------------------------
-   Terminal
+   Terminal / Chat
 ----------------------------- */
+
 #terminal {
     display: flex;
     flex-direction: column;
@@ -43,25 +41,23 @@ body {
 
 #terminal-output {
     flex: 1;
-    padding: 10px;
-    box-sizing: border-box;
-}
-
-/* Chat log lives inside #terminal-output */
-.chat-log {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
     overflow-y: auto;
     padding-right: 4px;
 }
 
+.chat-log {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 .msg {
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 8px;
-    max-width: 80%;
+    max-width: 90%;
     white-space: pre-wrap;
     line-height: 1.4;
+    font-size: 14px;
 }
 
 .msg.user {
@@ -77,80 +73,66 @@ body {
 }
 
 #terminal-input {
+    margin-top: 6px;
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
     background: #111;
     color: #0f0;
-    border: none;
-    padding: 8px;
-    font-size: 16px;
+    border: 1px solid #222;
     outline: none;
 }
 
 /* -----------------------------
-   State JSON Panel
+   Kernel State Panel
 ----------------------------- */
-#state-json {
-    background: #000;
-    color: #0f0;
-    padding: 10px;
-    overflow-y: auto;
-    height: calc(100% - 40px);
-    box-sizing: border-box;
-}
 
-/* -----------------------------
-   Canvas Elements
------------------------------ */
-canvas {
-    width: 100%;
-    height: 100%;
-    min-height: 200px;      /* prevents collapse */
-    display: block;         /* removes inline gaps */
-    background: #111;
-    box-sizing: border-box;
-}
-
-/* -----------------------------
-   Mobile Fixes
------------------------------ */
-@media (max-width: 800px) {
-    #layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto auto;
-        height: auto;
-    }
-
-    canvas {
-        min-height: 30vh;
-    }
-
-    body {
-        overflow-y: auto;
-    }
-}
-.chat-log {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
-    padding-right: 4px;
-}
-
-.msg {
-    padding: 8px 12px;
-    border-radius: 8px;
-    max-width: 80%;
-    white-space: pre-wrap;
-    line-height: 1.4;
-}
-
-.msg.user {
-    align-self: flex-end;
-    background: #1a1a1a;
-    color: #0f0;
-}
-
-.msg.system {
-    align-self: flex-start;
-    background: #111;
+#state-panel h2 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
     color: #0af;
+}
+
+#state-panel pre {
+    margin: 0;
+    font-size: 12px;
+    color: #0f0;
+    background: #050505;
+    padding: 6px;
+    overflow: auto;
+    height: calc(100% - 28px);
+}
+
+/* -----------------------------
+   2D Canvas Panel
+----------------------------- */
+
+#canvas-panel h2 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    color: #0af;
+}
+
+#canvas2d {
+    width: 100%;
+    height: calc(100% - 28px);
+    display: block;
+    background: #000;
+}
+
+/* -----------------------------
+   3D Canvas Panel
+----------------------------- */
+
+#webgl-panel h2 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    color: #0af;
+}
+
+#webgl-canvas {
+    width: 100%;
+    height: calc(100% - 28px);
+    display: block;
+    background: #000;
 }

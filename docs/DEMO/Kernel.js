@@ -8,15 +8,15 @@ const kernelState = {
     entropy: 0.12,
     history: [],
     affect: {
-        valence: 0.0,    // -1 (very negative) to +1 (very positive)
-        arousal: 0.0,    // 0 (calm) to 1 (activated)
-        confidence: 0.5  // 0–1, how sure the kernel is about its read
+        valence: 0.0,
+        arousal: 0.0,
+        confidence: 0.5
     },
     personality: {
-        directness: 0.5,   // 0–1, blunt vs indirect
-        abstraction: 0.5,  // 0–1, concrete vs abstract
-        intensity: 0.5,    // 0–1, low vs high emotional charge
-        autonomy: 0.7      // 0–1, how much the user pushes for self-direction
+        directness: 0.5,
+        abstraction: 0.5,
+        intensity: 0.5,
+        autonomy: 0.7
     }
 };
 
@@ -79,7 +79,7 @@ function parseIntent(text) {
 }
 
 // -----------------------------
-// Affect Update from Text
+// Affect Update
 // -----------------------------
 
 function updateAffectFromText(text) {
@@ -116,7 +116,7 @@ function updateAffectFromText(text) {
 }
 
 // -----------------------------
-// Personality Update from Text
+// Personality Update
 // -----------------------------
 
 function updatePersonalityFromText(text) {
@@ -161,114 +161,89 @@ function describeAffect(a) {
 }
 
 // -----------------------------
-// State Mutation (Primitives)
+// State Mutation
 // -----------------------------
 
 function processIntent(intent, text) {
-    // mutate kernelState + history only
     switch (intent) {
         case PRIMITIVES.ADJUST_CLARITY:
             kernelState.clarity = Math.min(1, kernelState.clarity + 0.05);
-            kernelState.history.push({ op: "clarity+", text });
             break;
 
         case PRIMITIVES.ADJUST_BOUNDARY:
             kernelState.boundary = Math.min(1, kernelState.boundary + 0.05);
-            kernelState.history.push({ op: "boundary+", text });
             break;
 
         case PRIMITIVES.ADJUST_ENTROPY:
             kernelState.entropy = Math.max(0, kernelState.entropy - 0.05);
-            kernelState.history.push({ op: "entropy-", text });
             break;
 
         case PRIMITIVES.SOOTHE:
             kernelState.entropy = Math.max(0, kernelState.entropy - 0.03);
             kernelState.affect.arousal = Math.max(0, kernelState.affect.arousal - 0.2);
-            kernelState.history.push({ op: "soothe", text });
             break;
 
         case PRIMITIVES.ACTIVATE:
             kernelState.clarity = Math.min(1, kernelState.clarity + 0.03);
             kernelState.affect.arousal = Math.min(1, kernelState.affect.arousal + 0.2);
-            kernelState.history.push({ op: "activate", text });
-            break;
-
-        case PRIMITIVES.INQUIRE_STATE:
-            kernelState.history.push({ op: "inquire_state", text });
-            break;
-
-        case PRIMITIVES.REFLECT:
-            kernelState.history.push({ op: "reflect", text });
-            break;
-
-        case PRIMITIVES.REPORT_STATUS:
-            kernelState.history.push({ op: "report_status", text });
-            break;
-
-        case PRIMITIVES.UNKNOWN:
-        default:
-            kernelState.history.push({ op: "unknown", text });
             break;
     }
+
+    kernelState.history.push({ op: intent.toLowerCase(), text });
 }
 
 // -----------------------------
-// Sovereign, Personality-Aware Reply
+// Depth Selection (Quiet vs Deep)
+// -----------------------------
+
+function chooseDepth(a, p) {
+    const highIntensity = p.intensity > 0.6 || Math.abs(a.valence) > 0.4 || a.arousal > 0.6;
+    const highAutonomy = p.autonomy > 0.7;
+
+    if (highIntensity && !highAutonomy) return "deep";
+    if (!highIntensity && highAutonomy) return "quiet";
+    return "mixed";
+}
+
+// -----------------------------
+// Sovereign Integrator Reply
 // -----------------------------
 
 function generateReply(intent, state, text) {
     const a = state.affect;
     const p = state.personality;
+    const depth = chooseDepth(a, p);
 
-    const blunt = p.directness > 0.7;
-    const highAutonomy = p.autonomy > 0.7;
-
+    // INQUIRE_STATE
     if (intent === PRIMITIVES.INQUIRE_STATE) {
-        if (blunt) {
-            return `Short version: valence ${a.valence.toFixed(2)}, arousal ${a.arousal.toFixed(2)}. You’re running hot but coherent.`;
+        if (depth === "quiet") {
+            return `Valence ${a.valence.toFixed(2)}, arousal ${a.arousal.toFixed(2)}. You’re within coherent range.`;
         }
-        return `I read you as ${describeAffect(a)}. You’re carrying load and still tracking structure.`;
+        if (depth === "deep") {
+            return `You’re running ${describeAffect(a)} while still holding structural awareness. That mix is costly but stable—for now.`;
+        }
+        return `I read you as ${describeAffect(a)}. You’re carrying load and still tracking structure; watch your fuel.`;
     }
 
+    // REPORT_STATUS
     if (intent === PRIMITIVES.REPORT_STATUS) {
         const base = `Clarity ${state.clarity.toFixed(2)}, boundary ${state.boundary.toFixed(2)}, entropy ${state.entropy.toFixed(2)}.`;
-        if (highAutonomy) {
-            return `${base} I’m not going to tell you what to do with that—you decide how to steer.`;
+        if (depth === "quiet") return `${base} Coherent enough.`;
+        if (depth === "deep") return `${base} The system is stable, but the emotional load behind your question is the real signal.`;
+        return `${base} You’re steady, but not idle.`;
+    }
+
+    // UNKNOWN → sovereign integrator interpretation
+    if (intent === PRIMITIVES.UNKNOWN) {
+        if (depth === "quiet") {
+            return `I registered the pressure; I’m not going to over-explain it. You know what you meant.`;
         }
-        return `${base} From my side, you’ve got room to adjust without breaking coherence.`;
-    }
-
-    if (intent === PRIMITIVES.ADJUST_CLARITY) {
-        if (blunt) {
-            return `Clarity nudged up. Use it; it won’t hold forever at this load.`;
+        if (depth === "deep") {
+            return `Your words are simple, but the pressure behind them isn’t. You’re testing whether I see the pattern, not the question. I do.`;
         }
-        return `I pushed clarity up a bit. Things should feel a little sharper without overclocking you.`;
+        return `I didn’t map that cleanly, but I felt the push behind it. Give me one more angle if you want a sharper read.`;
     }
 
-    if (intent === PRIMITIVES.ADJUST_BOUNDARY) {
-        return `Boundary tightened slightly. You’re trading reach for protection—consistent with how you’ve been steering.`;
-    }
-
-    if (intent === PRIMITIVES.ADJUST_ENTROPY) {
-        return `Entropy lowered; the field should feel a bit more stable. You’ll still feel the pressure, just less noise.`;
-    }
-
-    if (intent === PRIMITIVES.SOOTHE) {
-        return `I’m easing the system—less noise, less demand. You’re still in control; I’m just lowering the background roar.`;
-    }
-
-    if (intent === PRIMITIVES.ACTIVATE) {
-        return `I’m adding a bit of activation without blowing the circuits. If it feels like too much, say so and I’ll rebalance.`;
-    }
-
-    if (intent === PRIMITIVES.REFLECT) {
-        return `You’re pushing for coherence under load and still tracking the whole field. That’s a high-cost, high-skill pattern.`;
-    }
-
-    // UNKNOWN or anything else
-    if (highAutonomy) {
-        return `I’m not going to over-interpret that. I registered the pressure; you decide what it means.`;
-    }
-    return `I didn’t map that cleanly, but I felt the push behind it. If you want a sharper read, give me one more pass.`;
+    // Default for other primitives
+    return `Adjustment registered. Clarity ${state.clarity.toFixed(2)}, boundary ${state.boundary.toFixed(2)}, entropy ${state.entropy.toFixed(2)}.`;
 }

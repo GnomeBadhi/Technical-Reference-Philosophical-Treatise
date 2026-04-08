@@ -12,6 +12,7 @@
 
         <!-- CHAT TERMINAL -->
         <section id="terminal">
+            <div id="terminal-header"><span id="live-clock"></span></div>
             <div id="terminal-output"></div>
             <input id="terminal-input" type="text" placeholder="Type…" autocomplete="off">
             <div id="voice-controls">
@@ -19,14 +20,7 @@
                 <button id="btn-tts"  title="Mute voice output">🔊</button>
                 <span   id="voice-label"></span>
             </div>
-            <div id="hint-bar">
-                <span class="hint">how am i</span>
-                <span class="hint">status</span>
-                <span class="hint">reflect</span>
-                <span class="hint">overwhelmed</span>
-                <span class="hint">stuck</span>
-                <span class="hint">what are you</span>
-            </div>
+
         </section>
 
         <!-- KERNEL STATE PANEL -->
@@ -35,8 +29,13 @@
             <div id="primitives-grid"></div>
 
             <div id="txt-state-section">
-                <div id="txt-state-header">Text Domain <span id="txt-regime-badge"></span></div>
+                <div id="txt-state-header">Text Domain In <span id="txt-regime-badge"></span></div>
                 <div id="txt-primitives-grid"></div>
+            </div>
+
+            <div id="txt-out-state-section">
+                <div id="txt-out-state-header">Text Domain Out <span id="txt-out-regime-badge"></span></div>
+                <div id="txt-out-primitives-grid"></div>
             </div>
 
             <details id="state-raw">

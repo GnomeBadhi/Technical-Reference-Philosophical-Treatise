@@ -11,7 +11,7 @@
 
     // --- state ---
     let micActive  = false;
-    let ttsEnabled = true;
+    let ttsEnabled = false;
     let recognition = null;
 
     // --- DOM refs (set on load) ---
@@ -29,6 +29,7 @@
             if (btnMic)     btnMic.style.display     = "none";
             if (btnTts)     btnTts.style.display     = "none";
             if (voiceLabel) voiceLabel.style.display = "none";
+            syncTtsUI(); // still initialise TTS button appearance
             return;
         }
 
@@ -100,6 +101,10 @@
             if (!ttsEnabled) speechSynthesis.cancel();
             syncTtsUI();
         });
+
+        // Initialise button states to match defaults (TTS off, mic off)
+        syncMicUI();
+        syncTtsUI();
     });
 
     // --------------------------------------------------

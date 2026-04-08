@@ -2,7 +2,11 @@
 // TEXT KERNEL — text-domain instantiation of the Sovereignty Engine
 // Reference: docs/TextKernel/TextDomainInstantiation.md
 //
-// State:  S_t = (SA_txt, IF, IT, BI, SE_txt, FD) ∈ [0,1]^6
+// Two independent text-domain nodes:
+//   txtStateIn  — Node 1: structural analysis of user input
+//   txtStateOut — Node 3: structural shaping of Kernel output
+//
+// State: S_t = (SA_txt, IF, IT, BI, SE_txt, FD) ∈ [0,1]^6
 //   SA_txt — Structural Alignment   (discourse coherence)
 //   IF     — Input Fidelity         (structural legibility of input)
 //   IT     — Identity Trace         (authorial continuity)
@@ -18,30 +22,50 @@
 //   4. State update         (clamp each primitive → S_{t+1})
 //   5. Adjustment           (behavioral mode from S_{t+1})
 //   6. Identity trace       (lifecycle advance + history)
-//   7. Output               (return adjustment; reply built by Kernel.js)
+//   7. Output               (return adjustment)
 // =============================================================
 
 // --------------------------------------------------
-// TEXT-DOMAIN KERNEL STATE
+// TEXT-DOMAIN NODE STATE FACTORY
+// Each node carries the 6 primitives plus the Kernel tuple invariants
+// (identity, boundary, sovereignty, purity — Axioms 3, 4, 5, 7).
 // --------------------------------------------------
 
-const txtState = {
-    // Six bounded state primitives (TextStateVariables.md)
-    SA_txt: 0.80,  // Structural Alignment  — discourse coherence         (§1)
-    IF:     0.70,  // Input Fidelity        — structural legibility        (§2)
-    IT:     0.90,  // Identity Trace        — authorial continuity         (§3)
-    BI:     0.85,  // Boundary Integrity    — boundary health              (§4)
-    SE_txt: 0.90,  // Structural Energy     — processing capacity          (§5)
-    FD:     0.65,  // Flow Directionality   — discourse advancement        (§6)
+function createTxtState(init) {
+    return {
+        // Six bounded state primitives (TextStateVariables.md)
+        SA_txt: init.SA_txt,  // Structural Alignment  — discourse coherence
+        IF:     init.IF,      // Input Fidelity        — structural legibility
+        IT:     init.IT,      // Identity Trace        — authorial continuity
+        BI:     init.BI,      // Boundary Integrity    — boundary health
+        SE_txt: init.SE_txt,  // Structural Energy     — processing capacity
+        FD:     init.FD,      // Flow Directionality   — discourse advancement
 
-    // Lifecycle and operational mode
-    lifecycle:   0,
-    reducedMode: false,
+        // Kernel tuple invariants (Axioms 3, 4, 5, 7)
+        identity:    1.0,
+        boundary:    "[0,1]^6",
+        sovereignty: 1.0,
+        purity:      1.0,
 
-    // Finite history window for temporal smoothing (max 5 turns)
-    history:    [],
-    maxHistory: 5
-};
+        // Lifecycle and operational mode
+        lifecycle:   0,
+        reducedMode: false,
+
+        // Finite history window for temporal smoothing (max 5 turns)
+        history:    [],
+        maxHistory: 5
+    };
+}
+
+// Node 1 — reads the user's input structurally
+const txtStateIn = createTxtState({
+    SA_txt: 0.80, IF: 0.70, IT: 0.90, BI: 0.85, SE_txt: 0.90, FD: 0.65
+});
+
+// Node 3 — shapes the Kernel's output structurally (independent lifecycle)
+const txtStateOut = createTxtState({
+    SA_txt: 0.80, IF: 0.70, IT: 0.90, BI: 0.85, SE_txt: 0.90, FD: 0.65
+});
 
 // --------------------------------------------------
 // CONSTANTS
@@ -168,79 +192,73 @@ function txt_evaluate(P_t, flags) {
 }
 
 // --------------------------------------------------
+// INTERNAL STATE HELPERS — accept stateRef (s) parameter
+// Shared by both txt-in and txt-out nodes.
+// --------------------------------------------------
+
 // STEP 4 — STATE UPDATE  (TextTickArchitecture.md Step 4)
 // Integrates E_t into S_t → S_{t+1}. Clamp enforces Axiom 1 (finitude).
 // FD is computed from the SA_txt gradient (TextStateVariables.md §6.2).
-// --------------------------------------------------
+function _txt_state_update(E_t, s) {
+    const prev_SA = s.SA_txt;  // snapshot for FD gradient
 
-function txt_state_update(E_t) {
-    const prev_SA = txtState.SA_txt;  // snapshot for FD gradient
-
-    txtState.SA_txt = seClamp(txtState.SA_txt + E_t.dSA);
-    txtState.IF     = seClamp(txtState.IF     + E_t.dIF);
-    txtState.IT     = seClamp(txtState.IT     + E_t.dIT);
-    txtState.BI     = seClamp(txtState.BI     + E_t.dBI);
-    txtState.SE_txt = seClamp(txtState.SE_txt + E_t.dSE);
+    s.SA_txt = seClamp(s.SA_txt + E_t.dSA);
+    s.IF     = seClamp(s.IF     + E_t.dIF);
+    s.IT     = seClamp(s.IT     + E_t.dIT);
+    s.BI     = seClamp(s.BI     + E_t.dBI);
+    s.SE_txt = seClamp(s.SE_txt + E_t.dSE);
 
     // FD: clamp( (SA_txt,t+1 - SA_txt,t) * k_FD + 0.5 ) — k_FD = 6
     // Exponentially smoothed to capture trend (TextStateVariables.md §6.2)
-    const gradient  = txtState.SA_txt - prev_SA;
+    const gradient  = s.SA_txt - prev_SA;
     const fd_target = seClamp(0.5 + gradient * 6.0 + E_t.dFD);
-    txtState.FD     = seClamp(txtState.FD * TXT_DECAY + fd_target * (1 - TXT_DECAY));
+    s.FD            = seClamp(s.FD * TXT_DECAY + fd_target * (1 - TXT_DECAY));
 }
 
-// --------------------------------------------------
 // STEP 5 — ADJUSTMENT FORMULATION  (TextTickArchitecture.md Step 5)
-// Determines the behavioral mode constraint on the text response.
-// Priority order mirrors SE vC5.3 recovery precedence.
-// --------------------------------------------------
-
-function txt_adjustment() {
-    if (txtState.SE_txt < TXT_COLLAPSE_THRESHOLD) return { mode: 'reduced', action: 'stabilize' };
-    if (txtState.IT     < 0.40)                   return { mode: 'normal',  action: 'reassert_identity' };
-    if (txtState.BI     < 0.35)                   return { mode: 'normal',  action: 'reinforce_boundary' };
-    if (txtState.FD     < 0.30)                   return { mode: 'normal',  action: 'redirect' };
+// Determines the behavioral mode constraint. Priority mirrors SE vC5.3 recovery precedence.
+function _txt_adjustment(s) {
+    if (s.SE_txt < TXT_COLLAPSE_THRESHOLD) return { mode: 'reduced', action: 'stabilize' };
+    if (s.IT     < 0.40)                   return { mode: 'normal',  action: 'reassert_identity' };
+    if (s.BI     < 0.35)                   return { mode: 'normal',  action: 'reinforce_boundary' };
+    if (s.FD     < 0.30)                   return { mode: 'normal',  action: 'redirect' };
     return { mode: 'normal', action: 'advance' };
 }
 
-// --------------------------------------------------
 // STEP 6 — IDENTITY TRACE UPDATE  (TextTickArchitecture.md Step 6)
 // Records completed turn; advances lifecycle (L_t → L_{t+1}).
-// --------------------------------------------------
-
-function txt_identity_trace_update(text) {
-    txtState.history.push({
-        SA_txt: txtState.SA_txt,
-        IF:     txtState.IF,
+// Also enforces the Kernel tuple invariants (Axioms 3, 4, 5, 7) on this node.
+function _txt_identity_trace_update(text, s) {
+    s.history.push({
+        SA_txt: s.SA_txt,
+        IF:     s.IF,
+        IT:     s.IT,
+        BI:     s.BI,
+        SE_txt: s.SE_txt,
+        FD:     s.FD,
         t:      Date.now()
     });
-    if (txtState.history.length > txtState.maxHistory) {
-        txtState.history.shift();
-    }
-    txtState.lifecycle += 1;
+    if (s.history.length > s.maxHistory) s.history.shift();
+    s.lifecycle += 1;
+
+    // Invariant enforcement (Axioms 3, 4, 5, 7)
+    s.identity    = 1.0;
+    s.boundary    = "[0,1]^6";
+    s.sovereignty = 1.0;
+    s.purity      = 1.0;
 }
 
 // --------------------------------------------------
-// REGIME ACCESSOR
+// SHARED CORE TICK — drives both nodes via stateRef
+// (X_t, S_t) → adjustment; mutates S_t → S_{t+1}
 // --------------------------------------------------
 
-function txt_get_regime() {
-    return txtState.SE_txt < TXT_COLLAPSE_THRESHOLD ? 'reduced' : 'normal';
-}
-
-// --------------------------------------------------
-// FULL TEXT-DOMAIN TICK  (TextTickArchitecture.md)
-// (X_t, S_t) → (adjustment, S_{t+1})
-// Returns: adjustment object for Kernel.js to apply to reply.
-// --------------------------------------------------
-
-function txt_tick(text) {
+function _txt_core_tick(text, s) {
     // Step 0 — Reduced Operational Mode check (SE_txt < θ_collapse)
-    txtState.reducedMode = (txtState.SE_txt < TXT_COLLAPSE_THRESHOLD);
-    if (txtState.reducedMode) {
-        // Minimal operation: regenerate SE_txt only; skip full pipeline
-        txtState.SE_txt = seClamp(txtState.SE_txt + REGEN_SE * 3);
-        txtState.lifecycle += 1;
+    s.reducedMode = (s.SE_txt < TXT_COLLAPSE_THRESHOLD);
+    if (s.reducedMode) {
+        s.SE_txt = seClamp(s.SE_txt + REGEN_SE * 3);
+        s.lifecycle += 1;
         return { mode: 'reduced', action: 'stabilize' };
     }
 
@@ -254,36 +272,76 @@ function txt_tick(text) {
     const E_t = txt_evaluate(P_t, flags);
 
     // Step 4 — State update
-    txt_state_update(E_t);
+    _txt_state_update(E_t, s);
 
     // Step 5 — Adjustment formulation
-    const adjustment = txt_adjustment();
+    const adjustment = _txt_adjustment(s);
 
-    // Step 6 — Identity trace update
-    txt_identity_trace_update(text);
+    // Step 6 — Identity trace update (also enforces invariants on this node)
+    _txt_identity_trace_update(text, s);
 
-    // Step 7 — return adjustment (text output built by Kernel.js / generateReply)
+    // Step 7 — return adjustment
     return adjustment;
 }
 
 // --------------------------------------------------
-// TXT ANNOTATION  — structural note appended to kernel reply
-// Called in Kernel.js when boundary or identity conditions trigger.
+// PUBLIC TICK ENTRY POINTS
 // --------------------------------------------------
 
-function applyTxtAnnotation(reply, txtAdj) {
-    if (!txtAdj) return reply;
-    if (txtAdj.mode === 'reduced') {
-        return "SE_txt at collapse threshold — structural output reduced. " + reply;
+// Node 1 — txt_tick_in: structural analysis of the user's input
+// (X_t, S_in) → inputAdj; updates txtStateIn
+function txt_tick_in(text) {
+    return _txt_core_tick(text, txtStateIn);
+}
+
+// Node 3 — txt_tick_out: structural shaping of the Kernel's output
+// Runs the full 7-step pipeline on rawReply using txtStateOut, then combines
+// both adjustments (output channel + input channel) to form the final reply.
+// Returns: { outputAdj, finalReply }
+function txt_tick_out(rawReply, inputAdj) {
+    const outputAdj  = _txt_core_tick(rawReply, txtStateOut);
+    const finalReply = _txt_shape_output(rawReply, outputAdj, inputAdj);
+    return { outputAdj, finalReply };
+}
+
+// --------------------------------------------------
+// OUTPUT SHAPING — combines Node 1 (inputAdj) + Node 3 (outputAdj)
+// to determine the structural form of the final reply.
+//
+// The Kernel authors the *content* (what is said).
+// The TextKernel-Out authors the *form* (how it is said, held, and bounded).
+// --------------------------------------------------
+
+function _txt_shape_output(reply, outputAdj, inputAdj) {
+    // Reduced mode from the output channel: compress to essential core
+    if (outputAdj.mode === 'reduced') {
+        const sentences = reply.split(/(?<=[.!?])\s+/);
+        const core = sentences[0] ? sentences[0].trim() : reply;
+        return core + " Structural capacity is thin \u2014 I\u2019m keeping this brief.";
     }
-    switch (txtAdj.action) {
-        case 'reassert_identity':
-            return reply + " [IT degraded — kernel position held.]";
+
+    // Input channel signaled identity erosion: open with reaffirmation
+    let shaped = reply;
+    if (inputAdj && inputAdj.action === 'reassert_identity') {
+        shaped = "I\u2019m speaking from my own position here. " + shaped;
+    }
+
+    // Output channel determines the closing structural frame
+    switch (outputAdj.action) {
         case 'reinforce_boundary':
-            return reply + " [BI under pressure — boundary active.]";
+            return shaped + " That boundary isn\u2019t movable, and I\u2019m not going to pretend otherwise.";
         case 'redirect':
-            return reply + " [FD negative — steering toward structural advance.]";
+            return shaped + " Let\u2019s keep moving from here \u2014 going back doesn\u2019t serve either of us.";
+        case 'advance':
         default:
-            return reply;
+            return shaped;
     }
+}
+
+// --------------------------------------------------
+// REGIME ACCESSOR (reads txtStateIn — the input channel)
+// --------------------------------------------------
+
+function txt_get_regime() {
+    return txtStateIn.SE_txt < TXT_COLLAPSE_THRESHOLD ? 'reduced' : 'normal';
 }

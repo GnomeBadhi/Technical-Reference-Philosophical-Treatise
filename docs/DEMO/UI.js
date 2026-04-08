@@ -218,7 +218,7 @@ function logTick(kernelState, txtIn, txtOut, inputAdj, outputAdj) {
     const mgr = (typeof ManagerKernel !== "undefined") ? ManagerKernel : null;
     const entry = [
         `Tick ${mgr ? mgr.lifecycle : kernelState.lifecycle}`,
-        `  Manager:  L=${mgr ? mgr.lifecycle : "?"} violations=${mgr ? mgr.axiomViolations.length : 0} coherenceEvents=${mgr ? mgr.coherenceLog.length : 0}`,
+        `  Manager:  L=${mgr ? mgr.lifecycle : "?"} RA=${mgr ? mgr.RA.toFixed(2) : "?"} SA=${mgr ? mgr.SA.toFixed(2) : "?"} CE=${mgr ? mgr.CE.toFixed(2) : "?"} violations=${mgr ? mgr.axiomViolations.length : 0} coherenceEvents=${mgr ? mgr.coherenceLog.length : 0}`,
         `  TxtIn:   SA=${txtIn.SA_txt.toFixed(2)} IF=${txtIn.IF.toFixed(2)} IT=${txtIn.IT.toFixed(2)} BI=${txtIn.BI.toFixed(2)} SE=${txtIn.SE_txt.toFixed(2)} FD=${txtIn.FD.toFixed(2)} → ${inputAdj.mode}/${inputAdj.action}`,
         `  Kernel:  RA=${kernelState.RA.toFixed(2)} SA=${kernelState.SA.toFixed(2)} AI=${kernelState.AI.toFixed(2)} CE=${kernelState.CE.toFixed(2)}`,
         `  TxtOut:  SA=${txtOut.SA_txt.toFixed(2)} IF=${txtOut.IF.toFixed(2)} IT=${txtOut.IT.toFixed(2)} BI=${txtOut.BI.toFixed(2)} SE=${txtOut.SE_txt.toFixed(2)} FD=${txtOut.FD.toFixed(2)} → ${outputAdj.mode}/${outputAdj.action}`,
@@ -249,6 +249,7 @@ function updateStatePanel() {
     const network = {
         manager: mgr ? {
             lifecycle:       mgr.lifecycle,
+            RA: mgr.RA, SA: mgr.SA, AI: mgr.AI, CE: mgr.CE, CD: mgr.CD, AC: mgr.AC,
             coherenceLog:    mgr.coherenceLog,
             axiomViolations: mgr.axiomViolations
         } : null,

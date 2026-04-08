@@ -588,7 +588,7 @@ function generateReply(intent, state, text) {
 //   Node 1 (TextKernel-In)  → inputAdj
 //   Node 2 (Kernel)         → rawReply
 //   Node 3 (TextKernel-Out) → finalReply
-//   Node 4 (Manager)        → validate all, log coherence events
+//   Node 4 (Manager)        → accept output via se_tick, validate all, log coherence events
 // =============================================================
 
 const ManagerKernel = {
@@ -598,6 +598,10 @@ const ManagerKernel = {
     purity:      1.0,
 
     lifecycle:       0,
+
+    // SE6 state — Manager runs its own kernel cycle to accept each output
+    RA: 0.80, SA: 0.70, AI: 0.85, CE: 0.95, CD: 0.90, AC: 0.80,
+    EP: 0.0, recoveryMode: false, stateHistory: [],
     coherenceLog:    [],   // cross-node SA_txt divergence events
     axiomViolations: [],   // any axiom breach, with node ID + tick count
     maxLogSize:      20,
@@ -691,7 +695,8 @@ const ManagerKernel = {
         for (const node of kernelNodes) {
             this._checkNode(node.id, node, false, null);
         }
-        // Enforce Manager's own invariants
+        // Check and enforce Manager's own invariants
+        this._checkNode('manager', this, false, null);
         this._enforceInvariants(this);
     },
 
@@ -732,7 +737,8 @@ const ManagerKernel = {
     //   Step 4: Manager validates Node 2 + cross-alignment check
     //   Step 5: Node 3 (TextKernel-Out) — txt_tick_out(…)      → finalReply
     //   Step 6: Manager validates Node 3 + cross-node divergence check
-    //   Step 7: Final validateAllNodes — axiom set enforced before return
+    //   Step 7: Manager acceptance      — se_tick on Manager, output accepted
+    //   Step 8: Final validateAllNodes — axiom set enforced before return
     // --------------------------------------------------
 
     manager_tick(text) {
@@ -772,11 +778,14 @@ const ManagerKernel = {
         this.validateAllNodes(null);
         this.checkCrossNodeCoherence();
 
-        // Step 7 — Final axiom enforcement across all nodes
-        this.validateAllNodes(null);
+        // Step 7 — Output acceptance: Manager processes finalReply through a kernel cycle.
+        // The finalReply is only delivered to the user after the Manager has accepted it
+        // by running se_tick on its own SE6 state.
+        const { rho: mgrRho, mu: mgrMu, sigma: mgrSigma } = textToSEInputs(finalReply);
+        se_tick(this, mgrRho, mgrMu, mgrSigma);
 
-        // Advance Manager lifecycle and re-enforce its own invariants
-        this.lifecycle += 1;
+        // Step 8 — Final axiom enforcement across all nodes
+        this.validateAllNodes(null);
         this._enforceInvariants(this);
 
         // Update conversation context

@@ -328,6 +328,8 @@ function _txt_shape_output(reply, outputAdj, inputAdj) {
 
     // Output channel determines the closing structural frame
     switch (outputAdj.action) {
+        case 'reassert_identity':
+            return shaped + " I\u2019m staying grounded in my own structural position.";
         case 'reinforce_boundary':
             return shaped + " That boundary isn\u2019t movable, and I\u2019m not going to pretend otherwise.";
         case 'redirect':

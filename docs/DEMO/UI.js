@@ -269,10 +269,7 @@ function handleMessage(text) {
 
     printUser(text);
 
-    // processMessage returns { reply, inputAdj, outputAdj } (ManagerKernel coordinates all nodes)
-    const { reply: finalReply, inputAdj, outputAdj } = processMessage(text);
-
-    // Thinking indicator
+    // Disable input and show thinking indicator before processing begins
     termIn.disabled = true;
     showThinking();
 
@@ -280,6 +277,11 @@ function handleMessage(text) {
     setTimeout(() => {
         try {
             removeThinking();
+
+            // processMessage returns { reply, inputAdj, outputAdj } (ManagerKernel coordinates all nodes)
+            // Runs inside the delay so the thinking indicator is visible before state advances
+            const { reply: finalReply, inputAdj, outputAdj } = processMessage(text);
+
             printKernel(finalReply);
 
             if (typeof speakReply === "function") speakReply(finalReply);

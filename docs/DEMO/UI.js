@@ -350,9 +350,10 @@ const clockEl = document.getElementById("live-clock");
 function updateClock() {
     const now = new Date();
     const pad = n => String(n).padStart(2, "0");
+    const lifecycle = (typeof ManagerKernel !== "undefined") ? ManagerKernel.lifecycle : kernelState.lifecycle;
     clockEl.textContent =
         `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}` +
-        `  L:${kernelState.lifecycle.toFixed(4)}`;
+        `  L:${lifecycle}`;
 }
 
 // --------------------------------------------------

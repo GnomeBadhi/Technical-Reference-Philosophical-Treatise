@@ -395,6 +395,43 @@ canvas {
 .txt-regime-reduced { background: rgba(255, 60, 60, 0.20);  color: #ff4040; border: 1px solid rgba(255, 60, 60, 0.35); }
 
 /* --------------------------------------------------
+   TEXT DOMAIN OUT STATE SECTION  (Node 3 — TextKernel-Out)
+   Mirrors txt-state-section but tinted blue to distinguish input vs output channel.
+-------------------------------------------------- */
+
+#txt-out-state-section {
+    margin-top: 8px;
+    border-top: 1px solid rgba(60, 160, 255, 0.15);
+    padding-top: 6px;
+}
+
+#txt-out-state-header {
+    color: #60a0ff;
+    font-size: 12px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 6px rgba(60, 160, 255, 0.20);
+}
+
+#txt-out-primitives-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 10px;
+    margin-bottom: 8px;
+}
+
+#txt-out-regime-badge {
+    font-size: 11px;
+    font-weight: normal;
+    padding: 1px 7px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.txt-out-regime-active  { background: rgba(60, 160, 255, 0.12); color: #60a0ff; border: 1px solid rgba(60, 160, 255, 0.25); }
+.txt-out-regime-reduced { background: rgba(255, 60, 60, 0.20);  color: #ff4040; border: 1px solid rgba(255, 60, 60, 0.35); }
+
+/* --------------------------------------------------
    BOTTOM COCKPIT BAR
    Fixed strip at the very bottom of the viewport.
    Contains: FD gradient indicator, regime strip label, collapsible tick log.

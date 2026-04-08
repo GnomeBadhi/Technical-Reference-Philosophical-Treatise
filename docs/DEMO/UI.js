@@ -16,6 +16,9 @@ const regimeBadge = document.getElementById("regime-badge");
 const txtGrid = document.getElementById("txt-primitives-grid");
 const txtBadge = document.getElementById("txt-regime-badge");
 
+const txtOutGrid  = document.getElementById("txt-out-primitives-grid");
+const txtOutBadge = document.getElementById("txt-out-regime-badge");
+
 // Bottom cockpit bar (created dynamically)
 let bottomBar, fdBar, regimeStrip, tickLogBody;
 
@@ -121,6 +124,29 @@ function buildTxtPrimitivesGrid(state) {
     }
 }
 
+function buildTxtOutPrimitivesGrid(state) {
+    txtOutGrid.innerHTML = "";
+    for (const p of TXT_PRIM_DEFS) {
+        const val = state[p.key];
+        const pct = (val * 100).toFixed(0);
+
+        const row = document.createElement("div");
+        row.className = "prim-row";
+        row.title = p.desc;
+
+        row.innerHTML =
+            `<div class="prim-label">
+                <span class="prim-name">${p.label}</span>
+                <span class="prim-value">${val.toFixed(3)}</span>
+            </div>
+            <div class="prim-bar-track">
+                <div class="prim-bar-fill" style="width:${pct}%;background:${p.color};"></div>
+            </div>`;
+
+        txtOutGrid.appendChild(row);
+    }
+}
+
 // --------------------------------------------------
 // REGIME BADGES
 // --------------------------------------------------
@@ -161,6 +187,16 @@ function updateTxtRegimeBadge(state) {
     }
 }
 
+function updateTxtOutRegimeBadge(state) {
+    if (state.reducedMode) {
+        txtOutBadge.textContent = "REDUCED";
+        txtOutBadge.className = "txt-out-regime-reduced";
+    } else {
+        txtOutBadge.textContent = "ACTIVE";
+        txtOutBadge.className = "txt-out-regime-active";
+    }
+}
+
 // --------------------------------------------------
 // FD GRADIENT BAR
 // --------------------------------------------------
@@ -178,12 +214,14 @@ function updateFDGradient(fd) {
 // TICK LOG
 // --------------------------------------------------
 
-function logTick(kernelState, txtState, txtAdj) {
+function logTick(kernelState, txtIn, txtOut, inputAdj, outputAdj) {
+    const mgr = (typeof ManagerKernel !== "undefined") ? ManagerKernel : null;
     const entry = [
-        `Tick ${kernelState.lifecycle}`,
-        `  Kernel: RA=${kernelState.RA.toFixed(2)} SA=${kernelState.SA.toFixed(2)} AI=${kernelState.AI.toFixed(2)} CE=${kernelState.CE.toFixed(2)}`,
-        `  Text:   SA=${txtState.SA_txt.toFixed(2)} IF=${txtState.IF.toFixed(2)} IT=${txtState.IT.toFixed(2)} BI=${txtState.BI.toFixed(2)} SE=${txtState.SE_txt.toFixed(2)} FD=${txtState.FD.toFixed(2)}`,
-        `  Adj:    ${txtAdj.mode}/${txtAdj.action}`,
+        `Tick ${mgr ? mgr.lifecycle : kernelState.lifecycle}`,
+        `  Manager:  L=${mgr ? mgr.lifecycle : "?"} violations=${mgr ? mgr.axiomViolations.length : 0} coherenceEvents=${mgr ? mgr.coherenceLog.length : 0}`,
+        `  TxtIn:   SA=${txtIn.SA_txt.toFixed(2)} IF=${txtIn.IF.toFixed(2)} IT=${txtIn.IT.toFixed(2)} BI=${txtIn.BI.toFixed(2)} SE=${txtIn.SE_txt.toFixed(2)} FD=${txtIn.FD.toFixed(2)} → ${inputAdj.mode}/${inputAdj.action}`,
+        `  Kernel:  RA=${kernelState.RA.toFixed(2)} SA=${kernelState.SA.toFixed(2)} AI=${kernelState.AI.toFixed(2)} CE=${kernelState.CE.toFixed(2)}`,
+        `  TxtOut:  SA=${txtOut.SA_txt.toFixed(2)} IF=${txtOut.IF.toFixed(2)} IT=${txtOut.IT.toFixed(2)} BI=${txtOut.BI.toFixed(2)} SE=${txtOut.SE_txt.toFixed(2)} FD=${txtOut.FD.toFixed(2)} → ${outputAdj.mode}/${outputAdj.action}`,
         ""
     ].join("\n");
 
@@ -199,15 +237,25 @@ function updateStatePanel() {
     buildPrimitivesGrid(kernelState);
     updateRegimeBadge(kernelState);
 
-    buildTxtPrimitivesGrid(txtState);
-    updateTxtRegimeBadge(txtState);
+    buildTxtPrimitivesGrid(txtStateIn);
+    updateTxtRegimeBadge(txtStateIn);
 
-    updateFDGradient(txtState.FD);
+    buildTxtOutPrimitivesGrid(txtStateOut);
+    updateTxtOutRegimeBadge(txtStateOut);
 
+    updateFDGradient(txtStateIn.FD);
+
+    const mgr = (typeof ManagerKernel !== "undefined") ? ManagerKernel : null;
     const network = {
-        manager: kernelState,
-        text: txtState,
-        nodes: kernelNodes
+        manager: mgr ? {
+            lifecycle:       mgr.lifecycle,
+            coherenceLog:    mgr.coherenceLog,
+            axiomViolations: mgr.axiomViolations
+        } : null,
+        kernelNode:    kernelState,
+        txtIn:         txtStateIn,
+        txtOut:        txtStateOut,
+        couplingNodes: kernelNodes
     };
     stateJson.textContent = JSON.stringify(network, null, 2);
 }
@@ -221,8 +269,8 @@ function handleMessage(text) {
 
     printUser(text);
 
-    // processMessage returns { reply, txtAdj } (Kernel.js coordinates both ticks)
-    const { reply: finalReply, txtAdj } = processMessage(text);
+    // processMessage returns { reply, inputAdj, outputAdj } (ManagerKernel coordinates all nodes)
+    const { reply: finalReply, inputAdj, outputAdj } = processMessage(text);
 
     // Thinking indicator
     termIn.disabled = true;
@@ -240,7 +288,7 @@ function handleMessage(text) {
             draw2D(kernelState);
             draw3D(kernelState);
 
-            logTick(kernelState, txtState, txtAdj);
+            logTick(kernelState, txtStateIn, txtStateOut, inputAdj, outputAdj);
         } finally {
             termIn.disabled = false;
             termIn.focus();
@@ -330,7 +378,7 @@ window.addEventListener("load", () => {
 
     printKernel(
         "Sovereignty Engine vC5.3 online. " +
-        "Tracking RA, SA, AI, CE, CD, AC and SA_txt, IF, IT, BI, SE_txt, FD. " +
-        "Three influenced nodes running. What's on your mind?"
+        "Four-node architecture active: Manager \u2192 TextKernel-In \u2192 Kernel \u2192 TextKernel-Out. " +
+        "Axiom set enforced across all nodes. What\u2019s on your mind?"
     );
 });

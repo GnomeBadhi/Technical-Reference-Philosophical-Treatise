@@ -26,11 +26,14 @@ const ctx2d    = canvas2d.getContext("2d");
 function draw2D(state) {
     if (!canvas2d) return;
 
-    canvas2d.width  = canvas2d.clientWidth;
-    canvas2d.height = canvas2d.clientHeight;
+    canvas2d.width  = canvas2d.clientWidth  || canvas2d.offsetWidth;
+    canvas2d.height = canvas2d.clientHeight || canvas2d.offsetHeight;
 
     const w = canvas2d.width;
     const h = canvas2d.height;
+
+    // Skip draw if canvas has no dimensions yet (layout not complete)
+    if (w === 0 || h === 0) return;
 
     ctx2d.clearRect(0, 0, w, h);
 
@@ -104,11 +107,14 @@ function seToXY(engine, w, h) {
 function draw3D(state) {
     if (!canvas3d) return;
 
-    canvas3d.width  = canvas3d.clientWidth;
-    canvas3d.height = canvas3d.clientHeight;
+    canvas3d.width  = canvas3d.clientWidth  || canvas3d.offsetWidth;
+    canvas3d.height = canvas3d.clientHeight || canvas3d.offsetHeight;
 
     const w = canvas3d.width;
     const h = canvas3d.height;
+
+    // Skip draw if canvas has no dimensions yet (layout not complete)
+    if (w === 0 || h === 0) return;
 
     ctx3d.clearRect(0, 0, w, h);
 
@@ -237,11 +243,4 @@ function draw3D(state) {
     ctx3d.fillText(`L: ${state.lifecycle.toFixed(4)}`,                     10, h - 10);
 }
 
-// --------------------------------------------------
-// INITIAL DRAW ON LOAD
-// --------------------------------------------------
-
-window.addEventListener("load", () => {
-    draw2D(kernelState);
-    draw3D(kernelState);
-});
+// Initial draw is handled by UI.js window.addEventListener("load", ...)

@@ -1,8 +1,19 @@
-
 cff-version: 1.2.0
 message: "If you use this work, please cite it as below."
-authors:
-  - name: "GnomeBadhi"
 title: "Technical-Reference-Philosophical-Treatise"
-
+authors:
+  - family-names: "Badhi"
+    given-names: "Gnome"
+    alias: "GnomeBadhi"
+version: "2026.1"
+date-released: "2026-04-11"
 url: "https://github.com/GnomeBadhi/Technical-Reference-Philosophical-Treatise"
+repository-code: "https://github.com/GnomeBadhi/Technical-Reference-Philosophical-Treatise"
+type: "software"
+abstract: >
+  A formal ontological and cybernetic architecture defining the Sovereignty Engine,
+  a minimal organism composed of six kernel primitives: Reality Alignment (RA),
+  Shared Awareness (SA), Autonomy Integrity (AI), Cognitive Energy (CE),
+  Continuity Drive (CD), and Adaptive Capacity (AC). This treatise provides the
+  mathematical foundations, operator tables, and philosophical framework for the
+  Engine.

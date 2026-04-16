@@ -1,0 +1,43 @@
+# Build artifacts
+/build/
+/bin/
+/obj/
+/out/
+/dist/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Visual Studio / VSCode
+.vscode/
+.vs/
+*.sln
+*.vcxproj*
+*.code-workspace
+
+# Compiled objects
+*.o
+*.obj
+*.lo
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.exe
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Private implementations (keep your real logic local)
+private/
+local/
+internal/
+secrets/

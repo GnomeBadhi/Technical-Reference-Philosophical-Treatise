@@ -1,0 +1,219 @@
+API Documentation (Hybrid: Kernel‑Core + Public Clarity)
+
+This document defines the callable surface of the Sovereign Kernel Visualization Suite.  
+Each function is deterministic, side‑effect‑free (except rendering/export), and maps directly to operator‑level data.
+
+The API is grouped by domain:
+
+1. Single‑Universe  
+2. Dual‑Universe  
+3. Multi‑Universe  
+4. Export Layer  
+5. Orchestrator Interface  
+6. Utilities (loaders, layout, colors)
+
+---
+
+1. Single‑Universe Modules
+
+dashboard.py
+
+dashboard(path: str)
+Render the full single‑universe dashboard.
+
+Inputs
+- path: JSONL universe log
+
+Outputs
+- Matplotlib figure
+
+---
+
+replay_engine.py
+
+replay(path: str, interval: int = 120)
+Animate the universe over time.
+
+Inputs
+- path: JSONL log  
+- interval: frame delay (ms)
+
+Outputs
+- Matplotlib animation
+
+---
+
+heatmap.py
+
+heatmap(path: str, frame: int = -1)
+Render coherence + awareness heatmaps for a single frame.
+
+---
+
+glyph_layer.py
+
+draw_glyph(ax, data)
+Draw a single SKL glyph into an existing axis.
+
+glyph_layer(path: str, frame: int = -1)
+Render a standalone glyph.
+
+---
+
+glyph_animation.py
+
+glyph_animation(path: str, interval: int = 120)
+Animate the SKL glyph across time.
+
+---
+
+operator_dashboard.py
+
+operator_dashboard(path: str)
+Render operator‑level timelines (C_global, Δ₃, phase).
+
+---
+
+delta3_panel.py
+
+delta3_panel(path: str)
+Render Δ₃ decomposition and timeline.
+
+---
+
+2. Dual‑Universe Modules
+
+dashboard_multi.py
+
+dashboard_multi(pathA: str, pathB: str)
+Render synchronized dual‑universe dashboard.
+
+---
+
+phaselockinganalyzer.py
+
+phaselockinganalyzer(pathA: str, pathB: str)
+Compute and visualize phase locking, ΔC_global locking, Δ₃ locking.
+
+---
+
+crossuniversefield.py
+
+crossuniversefield(pathA: str, pathB: str, frame: int = -1)
+Render fused coherence field with ΔC_global vector field.
+
+---
+
+fused_glyph.py
+
+drawfusedglyph(ax, dataA, dataB)
+Draw fused SKL glyph into an axis.
+
+fused_glyph(pathA: str, pathB: str, frame: int = -1)
+Render fused glyph as standalone figure.
+
+---
+
+fusedglyphanimation.py
+
+fusedglyphanimation(pathA: str, pathB: str, interval: int = 120)
+Animate fused glyph across synchronized time.
+
+---
+
+instrument_panel.py
+
+instrument_panel(pathA: str, pathB: str, frame: int = -1)
+Render Universe A glyph, Universe B glyph, fused glyph, and three timelines.
+
+---
+
+replay_multi.py
+
+replay_multi(pathA: str, pathB: str, interval: int = 120)
+Animate dual‑universe replay with ΔC_global vectors.
+
+---
+
+3. Multi‑Universe Module
+
+comparison_suite.py
+
+comparison_suite(paths: list[str])
+Render:
+
+- ΔC_global matrix  
+- Δ₃ matrix  
+- phase difference matrix  
+- pairwise fused glyphs  
+
+Inputs
+- paths: list of JSONL logs
+
+---
+
+4. Export Layer
+
+export_utils.py
+
+make_name(base: str, ext: str)
+Deterministic timestamped filename.
+
+export_png(fig, base: str = "figure", dpi: int = 300)
+Export figure as PNG.
+
+export_svg(fig, base: str = "figure")
+Export figure as SVG.
+
+export_mp4(anim, base: str = "animation", fps: int = 30, bitrate: int = 2400)
+Export animation as MP4.
+
+export(figoranim, base: str, kind: str)
+Unified export interface.
+
+---
+
+5. Orchestrator Interface
+
+orchestrator.py
+
+run()
+CLI entry point.  
+Routes modes → modules.
+
+Modes
+- Single‑universe:  
+  dashboard, replay, heatmap, glyph, glyph_anim, operators, delta3
+- Dual‑universe:  
+  dashboardmulti, phaselock, field, fused, fusedanim, instrument, replaymulti
+- Multi‑universe:  
+  compare
+
+---
+
+6. Utilities
+
+utils.loaders
+
+load_jsonl(path: str)
+Load JSONL into list of dicts.
+
+load_dual(pathA: str, pathB: str)
+Load two logs and synchronize by minimum length.
+
+---
+
+utils.layout
+
+canonical_layout(N: int)
+Return (x, y) positions for N agents on a unit circle.
+
+canonical_angles(N: int)
+Return N evenly spaced angles.
+
+---
+
+utils.colors
+
+PHASE_COLORS
+Mapping: Phase → RGBA.

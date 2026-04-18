@@ -1,48 +1,106 @@
-
-
-# The Sovereignty Engine vC5.3
-
-## A Complete Ontological Architecture for Cybernetic Being
-
-"What is the simplest architecture capable of sustaining autonomous, self-correcting, self-preserving behavior?" — Gnome Badhi
-
-The Sovereignty Engine is a minimal cybernetic organism defined by six core primitives: Reality Alignment (RA), Shared Awareness (SA), Autonomy Integrity (AI), Cognitive Energy (CE), Continuity Drive (CD), and Adaptive Capacity (AC). This repository contains the formal specification, mathematical foundations, and code concordance for the Engine.
-
-## 📚 Documentation Index
-
-For detailed guidance through all materials, including multiple reading paths tailored to different learning styles, see the **[Documentation Index](docs/INDEX.md)**.
-
-## ⚖️ Ethical Use & Licensing
-
-This work is not traditional Open Source. It is a "Source-Available" philosophical and technical project released under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0) license.
-
-### 🚫 Strict Constraints:
-- **Non-Commercial**: No part of this architecture, its equations, or its code implementation may be used for profit or within commercial products.
-- **No-Derivatives**: You are encouraged to study and run the Engine privately for research. However, you are legally prohibited from sharing or distributing modified versions of the code or philosophy.
-
-### 🛡️ The "Ethical Gatekeeper" Policy
-
-As the author, Gnome Badhi retains exclusive rights to authorize any adaptations, improvements, or "forks" of the Sovereignty Engine. This restriction is in place to ensure that any evolution of this "Minimal Organism" aligns with the safety and boundary conditions defined in Chapter 12.
-
-## 🛠️ Repository Structure
-
-- **LICENSE**: Full legal text of the CC BY-NC-ND 4.0 license.
-- **docs/**: Complete documentation suite including technical references, diagrams, and disclosures.
-- **docs/INDEX.md**: Navigation guide to all materials (start here).
-- **src/**: (Planned) The line-by-line code concordance as described in Appendix A.
-
-## 📬 Contact for Adaptations
-
-If you wish to propose a modification, translate the treatise, or discuss a specific implementation that falls outside the standard "No-Derivatives" license, please open an Issue in this repository or contact the author directly.
+# Sovereign Commerce Kernel — Public Minimal Disclosure  
+**Author:** Chris Crocker (GitHub: Gnome Badhi)  
+**First Publication:** April 2026  
+**Status:** Conceptual disclosure for authorship verification  
+**License:** CC BY‑NC‑ND 4.0  
+**IP Rights:** Fully reserved (see IP_RIGHTS.md)
 
 ---
 
-Copyright © 2026 Gnome Badhi. All rights reserved.
+## Overview
 
-## Documentation Index
+This repository contains the **minimal public disclosure** of the conceptual architecture known as the **Sovereign Commerce Kernel (SCK)**.  
+Only the irreducible conceptual elements required to establish authorship and prior art are included.
 
-Explore the documentation index [INDEX.md](docs/INDEX.md) for multiple reading paths available to enhance your understanding of the project.
+This repository does **not** contain:
 
-![Theory → Hardware Bridge](docs/image_64cfa973.png)
+- implementation details  
+- system topology  
+- algorithms  
+- operational flows  
+- diagrams  
+- code  
+- internal mechanisms  
+- any enabling description of the architecture  
 
-*This image shows how the six kernel operators map directly onto physical hardware, mapping Boundary, Locality, Identity, Coupling, Propagation, and Domain to their concrete electrical expressions in the circuit.*
+All such materials remain private and protected.
+
+---
+
+## Purpose of This Repository
+
+This repository exists for **timestamped authorship verification** and **intellectual property protection**.
+
+It establishes:
+
+- authorship priority  
+- conceptual ownership  
+- prior art status  
+- reservation of all patent rights  
+- reservation of all trade secret rights  
+- prohibition of derivative works  
+- prohibition of reinterpretation  
+- prohibition of implementation  
+
+This is a **protective publication**, not an open‑source project.
+
+---
+
+## Core Concept Elements (Minimal Disclosure)
+
+The Sovereign Commerce Kernel is defined at a high level by:
+
+- **Three primitives:** ΔT (tangible work), ΔA (attention influence), Γ (agreement)  
+- **Four invariants:** tangible linkage, attention requirement, agreement requirement, auditability  
+- **Influence function:** a weighted combination of the primitives  
+- **Value delta:** aggregation of influence  
+
+These elements are disclosed **only in their minimal, non‑enabling form**.
+
+For details, see:  
+**SCK-concept-statement.md**
+
+---
+
+## Intellectual Property
+
+All rights are fully reserved by the author.
+
+The following documents govern the use of all materials in this repository:
+
+- **COPYRIGHT** — establishes authorship and ownership  
+- **LICENSE** — CC BY‑NC‑ND 4.0 (no derivatives, no commercial use)  
+- **PATENTS** — reserves all patent rights and establishes prior art  
+- **IP_RIGHTS** — asserts full IP control across the entire GitHub identity  
+- **NOTICE** — defines permitted and prohibited actions  
+
+No license is granted to implement, modify, reinterpret, or commercialize any concept contained herein.
+
+---
+
+## Usage Restrictions
+
+By accessing or interacting with this repository, you agree to the following:
+
+- No derivatives  
+- No reinterpretation  
+- No implementation  
+- No commercial use  
+- No patent filings  
+- No extraction of trade secrets  
+- No incorporation into other systems  
+
+This repository is **not** open for contributions.
+
+---
+
+## Contact
+
+For attribution, reference:  
+**“Sovereign Commerce Kernel — Concept Statement (2026), Chris Crocker (Gnome Badhi).”**
+
+No inquiries regarding licensing, implementation, or collaboration are accepted at this time.
+
+---
+
+© 2026 Chris Crocker (Gnome Badhi). All rights reserved.

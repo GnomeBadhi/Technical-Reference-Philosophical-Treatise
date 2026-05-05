@@ -3,7 +3,7 @@ title: "URT-MAP v1.0 — Cross-Domain Mapping Chart"
 version: "1.0.0"
 status: "draft"
 authors:
-  - name: "Chris"
+  - name: "Gnome Badhi"
 date-created: "2026-05-05"
 date-modified: "2026-05-05"
 tags:

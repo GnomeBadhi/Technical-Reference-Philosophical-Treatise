@@ -16,8 +16,7 @@ parent: "README.md"
 see-also:
   - "URT-MAP.md"
   - "Applications.md"
-  - "../sovereignty-engine/README.md"
-  - "../lk-urt/README.md"
+  - "../GEROMETRIC_CALCULUS/README.md"
 diagram-format: "Mermaid / SVG"
 commit-scope: "geometry"
 ---

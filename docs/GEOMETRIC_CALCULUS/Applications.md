@@ -15,8 +15,7 @@ parent: "README.md"
 see-also:
   - "URT-MAP.md"
   - "Invariant-Geometry.md"
-  - "../sovereignty-engine/README.md"
-  - "../lk-urt/README.md"
+  - "../GEOMETRIC_CALCULUS/README.md"
 commit-scope: "applications"
 ---
 

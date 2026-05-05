@@ -15,7 +15,7 @@ parent: "README.md"
 see-also:
   - "Invariant-Geometry.md"
   - "Applications.md"
-  - "../sovereignty-engine/README.md"
+  - "../GEOMETRIC_CALCULUS/README.md"
   - "../lk-urt/README.md"
 chart-format: "Markdown table + Mermaid"
 commit-scope: "chart"

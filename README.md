@@ -1,6 +1,6 @@
-# Sovereign Commerce Kernel — Public Minimal Disclosure  
+  
 **Author:** Chris Crocker (GitHub: Gnome Badhi)  
-**First Publication:** April 2026  
+**First Publication:** March 11 2026  
 **Status:** Conceptual disclosure for authorship verification  
 **License:** CC BY‑NC‑ND 4.0  
 **IP Rights:** Fully reserved (see IP_RIGHTS.md)

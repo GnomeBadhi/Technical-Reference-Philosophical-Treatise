@@ -1,7 +1,17 @@
 # The Vessel and the Author: Distinguishing Biological Emotion from Semantic Self
 ### A Structural Framework for Emotional Clarity, Coherence, and Sovereignty
+
 **Author:** Gnome Badhi
-**Date:** May 2026  
+**Version:** 1.0  
+**Status:** Preprint (Unarchived)  
+**License:** CC BY 4.0  
+**Last Updated:** May 2026  
+
+---
+
+> **Note:**  
+> This manuscript is not yet archived in a DOI‑issuing repository.  
+> A DOI may be added in a future release once the work is deposited in Zenodo, OSF, or another archival service.
 
 ---
 

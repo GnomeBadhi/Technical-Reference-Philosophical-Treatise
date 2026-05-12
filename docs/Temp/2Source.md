@@ -25,7 +25,7 @@ By grounding self-awareness in operator dynamics and information theory, this fr
 
 # Physical and Information-Theoretic Foundations
 
-A scientifically adequate account of self-awareness must begin with the physical substrate that generates all cognitive phenomena. In this framework, the brain is modeled as a high-dimensional dynamical system whose evolution over time is governed by physical laws and constrained by biological architecture. Let:
+A scientifically adequate account of self-awareness must begin with the physical substrate that generates all cognitive phenomena. In this framework, the brain is modeled as a high-dimensional dynamical system whose evolution over time is governed by physical laws and constrained by biological architecture.
 
 ```latex
 \dot{x} = F(x, u, \theta)

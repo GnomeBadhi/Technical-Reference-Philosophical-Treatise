@@ -1,5 +1,5 @@
 Historical Development of the Kernel
-(Author: Chris — Technical Reference Philosophical Treatise)
+(Author: Gnome Badhi (Chris Crocker) — Technical Reference Philosophical Treatise)
 
 1. Pre‑Formal Origins: The Search for Symmetry
 

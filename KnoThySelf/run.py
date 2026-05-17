@@ -7,7 +7,7 @@ def main():
     llm = LLMWrapper(client)
     kernel = SynergisticKernel(llm)
 
-    print("Synergistic Kernel ready.")
+    print("Synergistic Kernel ready. Model class:", kernel.model_class)
 
     while True:
         user_in = input("You: ")

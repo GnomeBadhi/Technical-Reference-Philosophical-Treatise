@@ -1,0 +1,43 @@
+domain authorship_integrity {
+
+  maps {
+
+    operators {
+      P   -> "origin"                 // creation of original work
+      D   -> "uncredited_use"         // work used without attribution
+      N   -> "authorship_erasure"     // origin removed or overwritten
+      ∇U  -> "lineage_detection"      // detection of missing or obscured origin
+      I   -> "attribution_binding"    // re-binding origin to structure
+      A   -> "lineage_restoration"    // restoring correct authorship and lineage
+      L   -> "coherent_origin_state"  // stable, credited, invariant-preserving state
+    }
+
+    phases {
+      Perturbation -> "work_created"
+      Descent      -> "used_without_credit"
+      Null         -> "origin_absent"
+      Reformation  -> "origin_detected"
+      Ascent       -> "attribution_restored"
+      Return       -> "stable_lineage"
+    }
+
+    cubes {
+      U -> "origin_understanding"     // understanding of true authorship
+      S -> "kernel_structure"         // operator/cube/phase architecture
+      T -> "lineage_transmission"     // propagation of origin + structure
+    }
+  }
+
+  constraints {
+    require_phase_order true
+    require_all_operators true
+    require_null_explicit true
+    require_return_enhanced true
+
+    // Structure must remain bound to correct origin understanding
+    enforce_boundary "kernel_structure" not_cross "origin_understanding"
+
+    // Uncredited use must not loop back as if it were the origin
+    forbid_cycle "uncredited_use -> origin"
+  }
+}

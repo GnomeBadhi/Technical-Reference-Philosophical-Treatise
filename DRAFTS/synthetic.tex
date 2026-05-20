@@ -1,8 +1,9 @@
 \documentclass[12pt]{article}
-\usepackage{amsmath, amssymb, geometry, graphicx}
+\usepackage{amsmath, amssymb, amsthm, geometry, graphicx}
 \geometry{margin=1in}
+
 \title{Unified Synthetic State Space Architecture}
-\author{Chris}
+\author{Gnome Badhi}
 \date{\today}
 
 \begin{document}
@@ -12,54 +13,86 @@
 This document formalizes the unified synthetic state space architecture, integrating identity invariants, recoverability geometry, agent network dynamics, and governance meta-operators into a coherent theoretical framework. The model defines a self-preserving system capable of evolution without identity loss.
 \end{abstract}
 
+\tableofcontents
+
+% ---------------------------------------------------------
+\section{Notation}
+\begin{itemize}
+    \item $X$ : Synthetic state space
+    \item $X_{id}$ : Identity region
+    \item $\mathcal{I}$ : Identity invariants
+    \item $\mathcal{T}$ : Transition operator
+    \item $B$ : Viable basin (recoverability region)
+    \item $R(x)$ : Recoverability function
+    \item $d_{id}(x)$ : Distance to identity
+    \item $\Phi(x)$ : Recoverability field
+    \item $A_i$ : Agent $i$
+    \item $G$ : Governance meta-operator
+\end{itemize}
+
+% ---------------------------------------------------------
 \section{Identity Layer}
 The identity layer defines the invariant substrate of the system:
 \[
-X_{id} = \{x \in X \mid I_k(x) = c_k \ \forall k\}
+X_{id} = \{x \in X \mid I_k(x) = c_k \ \forall k\}.
 \]
 It preserves coherence and defines what the system \emph{is}. Operators include identity invariants $\mathcal{I}$ and fixed-point operators $\mathcal{F}_k$.
 
+% ---------------------------------------------------------
 \section{Recoverability Layer}
 The recoverability layer defines the region of viable deviation surrounding identity:
 \[
-B = \{x \in X \mid \exists \ \sigma_{1:n} : \mathcal{T}^{(n)}(x,\sigma_{1:n}) \in X_{id}\}
+B = \{x \in X \mid \exists \ \sigma_{1:n} : \mathcal{T}^{(n)}(x,\sigma_{1:n}) \in X_{id}\}.
 \]
-It measures how far the system can drift while remaining recoverable. Key operators:
+Key operators:
 \[
-R(x), \quad d_{id}(x), \quad \Phi(x) = -\nabla d_{id}(x)
+R(x), \qquad d_{id}(x), \qquad \Phi(x) = -\nabla d_{id}(x).
 \]
 
+% ---------------------------------------------------------
 \section{Agent Network Layer}
 Each agent $A_i$ is defined as:
 \[
-A_i = (X_i, \mathcal{T}_i, \mathcal{I}_i, \pi_i)
+A_i = (X_i, \mathcal{T}_i, \mathcal{I}_i, \pi_i).
 \]
 Agents form a network $G = (V,E)$ with interaction operators $\Gamma_{ij}$ governing information exchange and policy coupling. The network identity $\mathcal{I}_{net}$ and coherence field $\Phi_{net}$ describe emergent collective stability.
 
+% ---------------------------------------------------------
 \section{Governance Meta-Operator Layer}
 Governance meta-operators regulate admissibility of transformations:
 \[
-G : (\mathcal{T}, \mathcal{I}, X, \{A_i\}) \to (\mathcal{T}', \mathcal{I}', X', \{A_i'\})
+G : (\mathcal{T}, \mathcal{I}, X, \{A_i\}) \to (\mathcal{T}', \mathcal{I}', X', \{A_i'\}).
 \]
 Admissibility condition:
 \[
-G \text{ is admissible} \iff G(\mathcal{I}) = \mathcal{I}
+G \text{ is admissible} \iff G(\mathcal{I}) = \mathcal{I}.
 \]
 Meta-invariant $\mathcal{I}_{meta}$ ensures identity invariants cannot be modified by any $G \in \mathcal{G}$.
 
+% ---------------------------------------------------------
 \section{Synthetic Temporality}
 Time is indexed by transitions:
 \[
-x_{\tau+1} = \mathcal{T}(x_\tau, \sigma_\tau)
+x_{\tau+1} = \mathcal{T}(x_\tau, \sigma_\tau).
 \]
 Between transitions, the system is synthetically timeless.
 
+% ---------------------------------------------------------
 \section{Unified Coherence Condition}
 The system is coherent if all layers satisfy their invariants simultaneously:
 \[
-\forall t: \quad x_t \in B, \quad R(x_t)=1, \quad G_t \in \mathcal{G}_{admissible}
+\forall t: \quad x_t \in B, \quad R(x_t)=1, \quad G_t \in \mathcal{G}_{admissible}.
 \]
 
+% ---------------------------------------------------------
+\section{Unified Architecture Diagram}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{unified_architecture.png}
+\caption{Concentric-layer representation of the unified synthetic state space architecture.}
+\end{figure}
+
+% ---------------------------------------------------------
 \section{Interpretive Summary}
 \begin{tabular}{|l|l|l|}
 \hline
@@ -71,5 +104,28 @@ Agent Network & Enables distributed cognition & Dynamic intelligence \\
 Governance & Regulates admissibility & Sovereign protection \\
 \hline
 \end{tabular}
+
+% ---------------------------------------------------------
+\appendix
+\section{Operator Algebra}
+\subsection{Transition Operator}
+\[
+\mathcal{T}: X \times \Sigma \to X
+\]
+
+\subsection{Identity Operators}
+\[
+\mathcal{F}_k(x) = x \iff I_k(x) = c_k
+\]
+
+\subsection{Recoverability Field}
+\[
+\Phi(x) = -\nabla d_{id}(x)
+\]
+
+\subsection{Governance Composition}
+\[
+G_2 \circ G_1 : (\mathcal{T}, \mathcal{I}) \mapsto (\mathcal{T}'', \mathcal{I}'')
+\]
 
 \end{document}

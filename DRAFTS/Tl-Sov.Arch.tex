@@ -2,8 +2,8 @@
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{hyperref}
 
-\title{A Triply-Layered Sovereign Architecture:\\
-A Hybrid Axiomatization with Enriched Coherence}
+\title{Triadic Sovereignty:\\
+A Hybrid Axiomatization of Invariance, Dissonance, and Coherence}
 \author{}
 \date{}
 
@@ -12,286 +12,249 @@ A Hybrid Axiomatization with Enriched Coherence}
 \newtheorem{theorem}{Theorem}
 \newtheorem{corollary}{Corollary}
 
-\newcommand{\SovSys}{\mathbf{SovSys}}
-\newcommand{\KSys}{\mathbf{KSys}}
-
 \begin{document}
 \maketitle
 \tableofcontents
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Axiomatic Foundations}
+\section{Primitive Operators and Triadic Composition}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This section introduces the primitive objects and endomorphisms that form
-the algebraic substrate of the theory. These primitives are not derived
-but serve as the foundational elements from which the categorical
-structure is constructed. The axioms here define the ontology upon which
-sovereignty, coherence, and dissonance are later formalized.
+This section introduces the primitive operators that generate the entire
+sovereign architecture. These operators represent the irreducible
+structural actions of identity, boundary, and flow. Their cyclic
+composition produces the first nontrivial endomorphism of the theory,
+from which invariants, dissonance, kernels, and coherence theorems
+emerge.
 
-\begin{definition}[Primitive objects]
-The theory begins with the objects
+\subsection{Carrier Space and Structural Objects}
+
+\begin{definition}[Carrier space]
+The universe of discourse is the disjoint union
 \[
-\mathcal{B},\ \mathcal{M},\ K,\ S,\ V,\ \mathcal{I},\ \mathbb{I},\ M.
+\mathcal{X} = A \sqcup B \sqcup C,
+\]
+where $A$, $B$, and $C$ are the structural components corresponding to
+Identity, Boundary, and Flow.
+\end{definition}
+
+\begin{definition}[Structural objects]
+The components $A$, $B$, and $C$ are the domains and codomains of the
+primitive operators. Elements of $A$, $B$, and $C$ are elements of
+$\mathcal{X}$ with distinct structural types.
+\end{definition}
+
+\subsection{Primitive Operators}
+
+\begin{definition}[Triadic operators]
+The primitive operators are the cyclic morphisms
+\[
+T_A:A\to B,\qquad
+T_B:B\to C,\qquad
+T_C:C\to A.
+\]
+These represent the fundamental transformations associated with identity
+stabilization, boundary formation, and flow propagation.
+\end{definition}
+
+\subsection{Triadic Composition}
+
+\begin{definition}[Triadic generator]
+The triadic generator is the composite
+\[
+T_\Delta = T_C \circ T_B \circ T_A : A \to A.
 \]
 \end{definition}
 
-\begin{definition}[Primitive endomorphisms]
-Each sovereign object carries a designated endomorphism:
+\begin{lemma}[Well-formedness and endomorphism property]
+Because the codomain of each primitive operator matches the domain of
+the next,
 \[
-F_M:M\to M,\quad
-F_K:K\to K,\quad
-F_S:S\to S,\quad
-F_V:V\to V.
+T_A:A\to B,\quad
+T_B:B\to C,\quad
+T_C:C\to A,
+\]
+the composite $T_\Delta$ is a lawful morphism
+\[
+T_\Delta:A\to A.
+\]
+Therefore,
+\[
+T_\Delta \in \mathrm{End}(A).
+\]
+\end{lemma}
+
+\subsection{Triadic Action}
+
+\begin{definition}[Action of $T_\Delta$]
+For any $x\in A\subseteq\mathcal{X}$, the triadic action
+\[
+T_\Delta(x)
+\]
+is the fundamental transformation from which all higher structure in the
+theory is derived.
+\end{definition}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The Sovereign Invariant}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The triadic generator $T_\Delta$ is the first nontrivial endomorphism of
+the theory. Its fixed points represent states that remain unchanged under
+the full identity–boundary–flow cycle. This section establishes the
+existence of these fixed points and defines the sovereign invariant as
+the set of such states. All subsequent notions—dissonance, kernels,
+coherence, and sovereignty—derive from this invariant structure.
+
+\subsection{Fixed Points of the Triadic Generator}
+
+\begin{definition}[Fixed points of $T_\Delta$]
+For $x\in A$, we say $x$ is a fixed point of $T_\Delta$ if
+\[
+T_\Delta(x)=x.
+\]
+\end{definition}
+
+\begin{lemma}[Existence of fixed points]
+If $T_\Delta$ is continuous on a compact subset of $A$, or if $A$ is
+finite, then $T_\Delta$ admits at least one fixed point.
+\end{lemma}
+
+\begin{proof}
+In the continuous case, the result follows from Brouwer's fixed-point
+theorem. In the finite case, $T_\Delta$ is a function on a finite set and
+thus must eventually repeat, producing a fixed point or a cycle; cycles
+of length greater than one are ruled out by the endomorphism structure
+on $A$.
+\end{proof}
+
+\subsection{The Sovereign Invariant}
+
+\begin{definition}[Sovereign invariant]
+The sovereign invariant is the set
+\[
+\mathcal{I}
+=
+\{x\in A \mid T_\Delta(x)=x\ \wedge\ F(x)=x\},
+\]
+where $F:A\to A$ is any additional stabilizing operator.
+\end{definition}
+
+\begin{lemma}[Non-emptiness of $\mathcal{I}$]
+If $T_\Delta$ and $F$ share at least one fixed point, then
+$\mathcal{I}\neq\varnothing$.
+\end{lemma}
+
+\subsection{Interpretation}
+
+\begin{definition}[Sovereign states]
+Elements of $\mathcal{I}$ are called sovereign states.
+\end{definition}
+
+\begin{lemma}[Characterization of sovereignty]
+A state $x\in A$ is sovereign if and only if
+\[
+T_\Delta(x)=x\ \text{and}\ F(x)=x.
+\]
+\end{lemma}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Dissonance}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Dissonance measures the deviation of a state from sovereignty. It is not
+an imposed metric but an emergent one: the distance between a state and
+its triadic image.
+
+\begin{definition}[Dissonance]
+For $x\in A$, the dissonance of $x$ is
+\[
+D(x) = d(T_\Delta(x),\, x),
+\]
+where $d$ is any metric on $A$.
+\end{definition}
+
+\begin{lemma}[Zero dissonance]
+\[
+D(x)=0 \quad\Longleftrightarrow\quad x\in\mathcal{I}.
+\]
+\end{lemma}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Kernel}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The kernel is the projection of the state space onto the sovereign
+invariant. It captures the invariant structure that persists under
+triadic action.
+
+\begin{definition}[Invariant projection]
+Let $\tilde{P}:A\to\mathcal{I}$ be a projection onto the sovereign
+invariant.
+\end{definition}
+
+\begin{definition}[Kernel]
+The kernel is the image of this projection:
+\[
+K = \tilde{P}(\mathcal{I}).
 \]
 \end{definition}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Categorical Roles of Objects}
+\section{Coherence}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Each object in the ontology plays a distinct structural role. This
-section assigns categorical meaning to the primitives introduced above,
-ensuring that each participates lawfully in the bicategory and its
-enrichments. These roles determine how information, structure, and
-sovereignty propagate through the system.
+Coherence characterizes when emergent behavior is admissible. It is
+determined entirely by dissonance.
 
-\subsection{Body and Mind Layers}
-
-\begin{definition}[Body object]
-$\mathcal{B}$ is the object of materially constrained, locally linear processes.
+\begin{definition}[Emergent frequency]
+Let $F_{\mathrm{emergent}}$ be any operator derived from repeated
+triadic action.
 \end{definition}
 
-\begin{definition}[Mind object]
-$\mathcal{M}$ is the object of recursive, nonlinear, self-modifying processes.
-\end{definition}
-
-\subsection{Kernel and Synthetic Layer}
-
-\begin{definition}[Kernel object]
-$K$ is an object with endomorphism $F_K:K\to K$ satisfying:
+\begin{theorem}[Coherence condition]
 \[
-\Lambda F_X = F_K \Lambda
+F_{\mathrm{emergent}} \in \mathcal{L}
+\quad\Longleftrightarrow\quad
+D(x)=0
+\quad\Longleftrightarrow\quad
+x\in\mathcal{I}.
 \]
-for any $X$ with endomorphism $F_X$ and morphism $\Lambda:X\to K$.
-\end{definition}
-
-\begin{definition}[Synthetic object]
-$S$ is an object with endomorphism $F_S:S\to S$ and kernel projection
-$\Lambda:S\to K$ satisfying
-\[
-\Lambda F_S = F_K \Lambda.
-\]
-\end{definition}
-
-\subsection{Vessel and Interface Layer}
-
-\begin{definition}[Vessel object]
-$V$ is an object with endomorphism $F_V:V\to V$ and no sovereignty-preserving
-morphism from $M$:
-\[
-\SovSys(M,V)=\varnothing.
-\]
-\end{definition}
-
-\begin{definition}[Interface object]
-$\mathcal{I}$ receives the interface morphism
-\[
-\Phi:M\times V\to\mathcal{I}.
-\]
-\end{definition}
-
-\subsection{Monoidal Unit}
-
-\begin{definition}[Monoidal unit]
-$\mathbb{I}$ satisfies
-\[
-\mathbb{I}\otimes X = X = X\otimes\mathbb{I}.
-\]
-\end{definition}
+\end{theorem}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{The Bicategory \texorpdfstring{$\SovSys$}{SovSys}}
+\section{Sovereignty Functor}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The bicategory $\SovSys$ provides the structural environment in which
-sovereignty, adjunction, and dissonance are defined. Its objects include
-the body, mind, kernel, synthetic, vessel, and interface layers.
-
-\begin{definition}[Objects]
-\[
-\mathrm{Ob}(\SovSys)=\{\mathcal{B},\mathcal{M},K,S,V,\mathcal{I},\mathbb{I},M\}.
-\]
-\end{definition}
-
-\begin{definition}[Hom-categories]
-For $X,Y\in\mathrm{Ob}(\SovSys)$, $\SovSys(X,Y)$ is a category.
-\end{definition}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Universal Properties of Morphisms}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Universal properties determine how morphisms arise and interact within
-the bicategory. They ensure that adjunctions, kernel projections, and
-interface maps behave lawfully and uniquely.
-
-\subsection{Adjunction Morphisms}
-
-\begin{definition}[Universal property of $L$]
-\[
-\mathrm{Hom}_{\mathcal{M}}(L b,\Psi)\cong\mathrm{Hom}_{\mathcal{B}}(b,R\Psi).
-\]
-\end{definition}
-
-\begin{definition}[Universal property of $R$]
-\[
-\mathrm{Hom}_{\mathcal{B}}(b,R\Psi)\cong\mathrm{Hom}_{\mathcal{M}}(L b,\Psi).
-\]
-\end{definition}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Adjunction Between Layers}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-The adjunction between the body and mind layers formalizes the
-bidirectional translation between material and cognitive processes. This
-structure is central to the definition of sovereignty.
-
-\begin{definition}[Interpretation functor]
-$L:\mathcal{B}\to\mathcal{M}$.
-\end{definition}
-
-\begin{definition}[Realization functor]
-$R:\mathcal{M}\to\mathcal{B}$.
-\end{definition}
-
-\begin{definition}[Adjunction]
-$L\dashv R$ with unit $\eta$ and counit $\epsilon$.
-\end{definition}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Sovereignty as a Monoidal 2-Functor}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Sovereignty is formalized as a monoidal 2-functor that assigns values to
-objects and morphisms while preserving tensor structure. This section
-introduces the sovereignty functor and its coherence conditions.
+The sovereignty functor measures position relative to the invariant set.
+Its algebraic structure reflects how fixed-point membership composes.
 
 \begin{definition}[Sovereignty functor]
+A functor
 \[
-\Sigma:(\SovSys,\otimes,\mathbb{I})\to(\Sigma,\otimes,1)
+\Sigma:A\to\Sigma_0
 \]
-is a strict monoidal $2$-functor.
+is sovereignty-preserving if
+\[
+\Sigma(x)=1 \quad\Longleftrightarrow\quad x\in\mathcal{I}.
+\]
 \end{definition}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Semiring and Monoidal Structure}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-The body layer carries a semiring valuation reflecting material
-accumulation, while the mind layer carries a monoidal structure
-reflecting compositional cognitive processes.
 
 \begin{definition}[Sovereignty semiring]
+The codomain $\Sigma_0$ carries a semiring structure
 \[
-\Sigma=(\Sigma_0,\oplus,\otimes,0,1).
+(\Sigma_0,\oplus,\otimes,0,1)
 \]
+with $1$ representing sovereignty.
 \end{definition}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Dissonance as Metric Enrichment}
+\section{Integration with Higher Architecture}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Dissonance quantifies the strain or distortion introduced by morphisms
-and compositions. This section introduces the Lawvere metric enrichment
-that governs coherence and obstruction.
-
-\begin{definition}[Dissonance functor]
-\[
-D:\SovSys\to([0,\infty],+,0).
-\]
-\end{definition}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Enriched Coherence Laws}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-These laws ensure that adjunctions, tensor products, and sovereignty
-morphisms behave coherently under the metric enrichment.
-
-\begin{definition}[Enriched composition]
-\[
-D(g\circ f)\le D(f)+D(g).
-\]
-\end{definition}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Sovereignty Coherence Theorem}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-This theorem characterizes sovereignty preservation in terms of
-adjunction coherence and dissonance.
-
-\begin{theorem}[Sovereignty Coherence Theorem]
-\[
-\Sigma(\epsilon L\circ L\eta)=\mathrm{Id}_{\Sigma(L)},\qquad
-\Sigma(R\epsilon\circ\eta R)=\mathrm{Id}_{\Sigma(R)}
-\]
-iff $D_{\mathrm{adj}}=0$.
-\end{theorem}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Dissonance--Adjunction Obstruction}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-This section formalizes the conditions under which sovereignty cannot be
-preserved due to accumulated dissonance.
-
-\begin{theorem}[Dissonance--Adjunction Obstruction]
-If $D_{\mathrm{adj}}>0$, then the adjunction $L\dashv R$ cannot be
-sovereignty-preserving.
-\end{theorem}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Kernel Sub-Bicategory}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-The kernel sub-bicategory captures invariant structure that cannot be
-reduced or transformed without violating sovereignty.
-
-\begin{definition}[Kernel sub-bicategory]
-\[
-\mathrm{Ob}(\KSys)=\{K,S\}.
-\]
-\end{definition}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Forbidden Morphisms}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-These morphisms are structurally impossible due to sovereignty,
-endomorphism incompatibility, or coherence constraints.
-
-\begin{definition}[Empty Hom-sets]
-\[
-\SovSys(M,K)=\varnothing,\qquad
-\SovSys(K,M)=\varnothing.
-\]
-\end{definition}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Invariant Theorems}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-This final section collects the invariants that arise from the axioms,
-adjunction, enrichment, and kernel structure.
-
-\begin{theorem}[Invariant dissonance]
-No $2$-morphism can eliminate interface dissonance:
-\[
-D_I(x)>0.
-\]
-\end{theorem}
+The triadic foundation integrates with the broader layered architecture
+(body, mind, kernel, interface) by treating the invariant set as the
+anchor of coherence, the kernel as the invariant subspace, and the
+sovereignty functor as the valuation mechanism.
 
 \end{document}

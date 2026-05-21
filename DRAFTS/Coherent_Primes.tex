@@ -5,11 +5,11 @@
 \usepackage{hyperref}
 \geometry{margin=1in}
 
-\title{Prime-Indexed Self-Consistent Systems:\
-A Unified Framework for Domain Stability, EMIRP Closure,\
+\title{Prime-Indexed Self-Consistent Systems:\\
+A Unified Framework for Domain Stability, EMIRP Closure,\\
 and Invariant Dynamics}
 
-\author{Gnome Badhi\
+\author{Gnome Badhi\\
 {\small Independent Systems Analyst}}
 
 \date{May 21, 2026}
@@ -29,10 +29,10 @@ and Invariant Dynamics}
 \maketitle
 
 \begin{abstract}
-We introduce the \emph{Prime-Indexed Self-Consistent System} (PISCS), a mathematical framework in which primes index minimal admissible domains and EMIRPs (reversible primes) define representation-invariant validation operators. Each domain   carries a high-resolution operator  , while each EMIRP   induces a validation operator   acting as a projection onto a self-consistent subspace. Stability is achieved when
-[
+We introduce the \emph{Prime-Indexed Self-Consistent System} (PISCS), a mathematical framework in which primes index minimal admissible domains and EMIRPs (reversible primes) define representation-invariant validation operators. Each domain $D_p$ carries a high-resolution operator $F_p$, while each EMIRP $e$ induces a validation operator $F_{e^R}$ acting as a projection onto a self-consistent subspace. Stability is achieved when
+\[
 F_{e^R} \circ F_p = F_p,
-]
+\]
 so that the high-resolution operator is a fixed point of EMIRP validation. This invariant is expressed equivalently as a commutative diagram, a natural transformation, a dynamical fixed point, a projection kernel, and a renormalization fixed point. The structure provides a minimal mathematical model for self-validation, identity preservation, and hierarchical domain construction.
 \end{abstract}
 
@@ -42,13 +42,13 @@ Self-consistent systems require mechanisms for validating their own outputs. Phy
 
 In the PISCS framework, primes index minimal admissible domains, and EMIRPs (primes whose digit reversals are also prime) define reversible validation structures. The central idea is:
 \begin{itemize}
-\item a prime   defines a stable domain  ;
-\item an EMIRP   defines a validation operator  ;
-\item the EMIRP flip   encodes a symmetry that determines a projection geometry;
+\item a prime $p$ defines a stable domain $D_p$;
+\item an EMIRP $e$ defines a validation operator $F_{e^R}$;
+\item the EMIRP flip $e \leftrightarrow e^R$ encodes a symmetry that determines a projection geometry;
 \item stability promotes the domain to a higher-level variable when the invariant
-[
+\[
 F_{e^R} \circ F_p = F_p
-]
+\]
 holds.
 \end{itemize}
 

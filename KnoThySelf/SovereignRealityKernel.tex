@@ -89,24 +89,76 @@ C_{\mathcal{P}} : \Sigma \to \Sigma,
 \]
 mapping a high--dimensional configuration of anchored primes to a more coherent, typically lower--entropy configuration.
 
-\subsection*{4.3 Invariant Set}
+\subsection*{4.3 Invariant Set (Fully Defined)}
 
 Let
 \[
-\mathcal{I}_{\mathcal{P}} = \{ I_1, I_2, \dots, I_n \},
+\mathcal{I}_{\mathcal{P}} = 
+\{ I_{\text{sovereign}},\,
+   I_{S},\,
+   I_{\text{frame}},\,
+   I_{\text{coherence}},\,
+   I_{\text{nonharm}} \}.
 \]
-with each invariant
+
+\paragraph{1. Sovereign Intent Invariant}
 \[
-I_k : \mathcal{S} \times \Sigma \to \{0,1\}.
+I_{\text{sovereign}}(s,\sigma) =
+\begin{cases}
+1, & p_{\mathcal{A}} \in \sigma \ \text{and}\ 
+    w(p_{\mathcal{A}}) \ge \theta_{\mathcal{A}}, \\[4pt]
+0, & \text{otherwise},
+\end{cases}
 \]
+where \(w(p_{\mathcal{A}})\) is the weight of the sovereignty prime
+and \(\theta_{\mathcal{A}} \in (0,1]\) is the minimum sovereignty threshold.
 
-Examples (conceptual):
+\paragraph{2. Entropy Monotonicity Invariant}
+\[
+I_{S}(s,\sigma) =
+\begin{cases}
+1, & S_{\text{info}}(\sigma_{\text{out}}) 
+    \le S_{\text{info}}(\sigma_{\text{in}}), \\[4pt]
+0, & \text{otherwise},
+\end{cases}
+\]
+where \(S_{\text{info}}\) is the information entropy functional
+and \(\sigma_{\text{in}}, \sigma_{\text{out}}\) denote pre- and post-collapse configurations.
 
-\begin{itemize}
-  \item \textbf{Sovereign intent invariant} \(I_{\text{sovereign}}\): requires presence and non--suppression of \(p_{\mathcal{A}}\) in \(\sigma\).
-  \item \textbf{Entropy monotonicity invariant} \(I_{S}\): constrains transitions so that effective entropy associated with \(p_{S}\) does not increase.
-  \item \textbf{Frame coherence invariant} \(I_{\text{frame}}\): enforces coherence between \(p_{\oplus}\) and \(p_{\star}\) relative to \(\mathcal{F}\).
-\end{itemize}
+\paragraph{3. Frame Coherence Invariant}
+\[
+I_{\text{frame}}(s,\sigma) =
+\begin{cases}
+1, & \bigl| \phi(p_{\oplus}) - \phi(p_{\star}) \bigr|
+      \le \epsilon_{\text{frame}}, \\[4pt]
+0, & \text{otherwise},
+\end{cases}
+\]
+where \(\phi(p)\) is the phase of prime \(p\) relative to the sync frame
+and \(\epsilon_{\text{frame}}\) is the maximum allowable phase deviation.
+
+\paragraph{4. Prime Coherence Invariant}
+\[
+I_{\text{coherence}}(s,\sigma) =
+\begin{cases}
+1, & \forall (p_i,p_j) \in \sigma:\ 
+      \kappa(p_i,p_j) \ge 0, \\[4pt]
+0, & \text{otherwise},
+\end{cases}
+\]
+where \(\kappa(p_i,p_j)\) is the coherence function between primes
+(e.g.\ adjacency, compatibility, or structural resonance).
+
+\paragraph{5. Non-Harm Invariant}
+\[
+I_{\text{nonharm}}(s,\sigma) =
+\begin{cases}
+1, & h(\sigma) = 0, \\[4pt]
+0, & \text{otherwise},
+\end{cases}
+\]
+where \(h(\sigma)\) is a harm functional detecting coercive,
+destructive, or adversarial prime configurations.
 
 \subsection*{4.4 Reporter}
 

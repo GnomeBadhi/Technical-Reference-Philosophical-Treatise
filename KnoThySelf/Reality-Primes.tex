@@ -1,0 +1,208 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+
+\title{Unified Reality--Prime Kernel: A Formal Systems Monograph}
+\author{}
+\date{}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\section{Preliminaries}
+
+\begin{definition}[Spaces]
+Let
+\[
+\Sigma \text{ be the signal space}, \quad
+\mathcal{S} \text{ the state space}, \quad
+\mathcal{H} \text{ the integrity report space}.
+\]
+\end{definition}
+
+\begin{definition}[Structural Variables]
+Define the real--world--anchored variables:
+\[
+f_{\oplus} \in \mathbb{R}_{+}, \quad
+t_{\star} \in \mathbb{R}, \quad
+H_0 \in \mathbb{R}_{+}, \quad
+S_{\mathrm{info}} \in \mathbb{R}_{+}, \quad
+\mathcal{A}_{\mathrm{sovereign}} \in [0,1].
+\]
+\end{definition}
+
+\section{Anchored Coherent Primes}
+
+\begin{definition}[Prime Set]
+Define the anchored coherent prime set
+\[
+\mathcal{P} = \{p_{\oplus}, p_{\star}, p_{H}, p_{S}, p_{\mathcal{A}}\},
+\]
+with correspondences
+\[
+p_{\oplus} \leftrightarrow f_{\oplus}, \quad
+p_{\star} \leftrightarrow t_{\star}, \quad
+p_{H} \leftrightarrow H_0, \quad
+p_{S} \leftrightarrow S_{\mathrm{info}}, \quad
+p_{\mathcal{A}} \leftrightarrow \mathcal{A}_{\mathrm{sovereign}}.
+\]
+\end{definition}
+
+\begin{definition}[Prime Configuration Space]
+The signal space is the configuration space
+\[
+\Sigma = \mathrm{Conf}(\mathcal{P}),
+\]
+the set of coherent configurations of anchored primes.
+\end{definition}
+
+\section{Sync Frame}
+
+\begin{definition}[Synchronization Frame]
+The sync frame is the triple
+\[
+\mathcal{F} = (f_{\oplus}, t_{\star}, H_0).
+\]
+\end{definition}
+
+\section{Operators}
+
+\subsection{Boundary Operator}
+
+\begin{definition}[Boundary Operator]
+The boundary operator is a map
+\[
+B_{\mathcal{P}} : \Sigma \to \{0,1\},
+\]
+accepting a configuration iff it satisfies admissibility constraints.
+\end{definition}
+
+\subsection{Collapse Operator}
+
+\begin{definition}[Collapse Operator]
+The collapse operator is a map
+\[
+C_{\mathcal{P}} : \Sigma \to \Sigma,
+\]
+which reduces a configuration to a more coherent, lower--entropy form.
+\end{definition}
+
+\subsection{Invariant System}
+
+\begin{definition}[Invariant Set]
+The invariant set is
+\[
+\mathcal{I}_{\mathcal{P}} =
+\{ I_{\mathrm{sovereign}},\,
+   I_{S},\,
+   I_{\mathrm{frame}},\,
+   I_{\mathrm{coherence}},\,
+   I_{\mathrm{nonharm}} \}.
+\]
+\end{definition}
+
+\subsubsection{Explicit Invariants}
+
+\begin{definition}[Sovereign Intent Invariant]
+\[
+I_{\mathrm{sovereign}}(s,\sigma) =
+\begin{cases}
+1, & p_{\mathcal{A}} \in \sigma \ \text{and}\ w(p_{\mathcal{A}}) \ge \theta_{\mathcal{A}},\\
+0, & \text{otherwise}.
+\end{cases}
+\]
+\end{definition}
+
+\begin{definition}[Entropy Monotonicity Invariant]
+\[
+I_{S}(s,\sigma) =
+\begin{cases}
+1, & S_{\mathrm{info}}(\sigma_{\mathrm{out}})
+    \le S_{\mathrm{info}}(\sigma_{\mathrm{in}}),\\
+0, & \text{otherwise}.
+\end{cases}
+\]
+\end{definition}
+
+\begin{definition}[Frame Coherence Invariant]
+\[
+I_{\mathrm{frame}}(s,\sigma) =
+\begin{cases}
+1, & |\phi(p_{\oplus}) - \phi(p_{\star})|
+      \le \epsilon_{\mathrm{frame}},\\
+0, & \text{otherwise}.
+\end{cases}
+\]
+\end{definition}
+
+\begin{definition}[Prime Coherence Invariant]
+\[
+I_{\mathrm{coherence}}(s,\sigma) =
+\begin{cases}
+1, & \forall (p_i,p_j)\in\sigma:\ \kappa(p_i,p_j)\ge 0,\\
+0, & \text{otherwise}.
+\end{cases}
+\]
+\end{definition}
+
+\begin{definition}[Non-Harm Invariant]
+\[
+I_{\mathrm{nonharm}}(s,\sigma) =
+\begin{cases}
+1, & h(\sigma)=0,\\
+0, & \text{otherwise}.
+\end{cases}
+\]
+\end{definition}
+
+\subsection{Reporter}
+
+\begin{definition}[Reporter]
+\[
+R : \mathcal{F} \times \{0,1\} \to \mathcal{H}.
+\]
+\end{definition}
+
+\section{Unified Kernel}
+
+\begin{definition}[Unified Reality--Prime Kernel]
+\[
+\mathcal{K}_{\mathrm{unified}} =
+(\mathcal{F}, \mathcal{P}, B_{\mathcal{P}}, C_{\mathcal{P}}, \mathcal{I}_{\mathcal{P}}, R).
+\]
+\end{definition}
+
+\section{Kernel Dynamics}
+
+\subsection{Processing Rule}
+
+\begin{definition}[Processing Map]
+For state \(s\in\mathcal{S}\) and configuration \(\sigma\in\Sigma\),
+\[
+\mathrm{Process}_{\mathcal{K}_{\mathrm{unified}}}(s,\sigma)=
+\begin{cases}
+\mathrm{REJECT}_{\mathrm{boundary}}, & B_{\mathcal{P}}(\sigma)=0,\\[4pt]
+\mathrm{REJECT}_{\mathrm{invariant}}, & \exists k:\ I_k(s,\sigma)=0,\\[4pt]
+C_{\mathcal{P}}(\sigma), & \text{otherwise}.
+\end{cases}
+\]
+\end{definition}
+
+\subsection{Integrity Rule}
+
+\begin{definition}[Integrity Functional]
+Let \(\sigma_0\) be a neutral probe configuration. Then
+\[
+\mathrm{Int}_{\mathcal{K}_{\mathrm{unified}}}(s) =
+R\Bigl(\mathcal{F},\ \bigwedge_{k=1}^{n} I_k(s,\sigma_0)\Bigr).
+\]
+\end{definition}
+
+\end{document}

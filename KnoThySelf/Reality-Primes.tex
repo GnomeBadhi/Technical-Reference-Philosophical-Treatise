@@ -21,7 +21,7 @@
 \begin{definition}[Spaces]
 Let
 \[
-\Sigma \text{ be the signal space}, \quad
+\Sigma \text{ be the signal (configuration) space}, \quad
 \mathcal{S} \text{ the state space}, \quad
 \mathcal{H} \text{ the integrity report space}.
 \]
@@ -33,9 +33,10 @@ Define the real--world--anchored variables:
 f_{\oplus} \in \mathbb{R}_{+}, \quad
 t_{\star} \in \mathbb{R}, \quad
 H_0 \in \mathbb{R}_{+}, \quad
-S_{\mathrm{info}} \in \mathbb{R}_{+}, \quad
+S_{\mathrm{info}} : \Sigma \to \mathbb{R}_{+}, \quad
 \mathcal{A}_{\mathrm{sovereign}} \in [0,1].
 \]
+Here \(S_{\mathrm{info}}(\sigma)\) denotes the information entropy of configuration \(\sigma\).
 \end{definition}
 
 \section{Anchored Coherent Primes}
@@ -60,7 +61,7 @@ The signal space is the configuration space
 \[
 \Sigma = \mathrm{Conf}(\mathcal{P}),
 \]
-the set of coherent configurations of anchored primes.
+the set of coherent configurations of anchored primes (e.g.\ multisets, graphs, or patterns over \(\mathcal{P}\)).
 \end{definition}
 
 \section{Sync Frame}
@@ -69,6 +70,75 @@ the set of coherent configurations of anchored primes.
 The sync frame is the triple
 \[
 \mathcal{F} = (f_{\oplus}, t_{\star}, H_0).
+\]
+\end{definition}
+
+\section{Auxiliary Functionals and Parameters}
+
+\begin{definition}[Weight Functional]
+The weight functional
+\[
+w : \mathcal{P} \to [0,1]
+\]
+assigns to each prime \(p \in \mathcal{P}\) a normalized weight \(w(p)\) representing its effective strength or activation in a configuration.
+\end{definition}
+
+\begin{definition}[Sovereignty Threshold]
+The sovereignty threshold
+\[
+\theta_{\mathcal{A}} \in (0,1]
+\]
+is a fixed parameter specifying the minimum required weight of the sovereignty prime \(p_{\mathcal{A}}\) for sovereign intent to be considered present.
+\end{definition}
+
+\begin{definition}[Phase Map]
+The phase map
+\[
+\phi : \mathcal{P} \to \mathbb{R} / 2\pi\mathbb{Z}
+\]
+assigns to each prime \(p \in \mathcal{P}\) a phase \(\phi(p)\) relative to the sync frame \(\mathcal{F}\).
+\end{definition}
+
+\begin{definition}[Frame Tolerance]
+The frame tolerance
+\[
+\epsilon_{\mathrm{frame}} > 0
+\]
+is a fixed parameter specifying the maximum allowable phase deviation between \(p_{\oplus}\) and \(p_{\star}\) for frame coherence.
+\end{definition}
+
+\begin{definition}[Coherence Function]
+The coherence function
+\[
+\kappa : \mathcal{P} \times \mathcal{P} \to \mathbb{R}
+\]
+assigns to each pair \((p_i,p_j)\) a real value measuring their structural compatibility, with
+\[
+\kappa(p_i,p_j) \ge 0
+\]
+interpreted as coherent or non--conflicting.
+\end{definition}
+
+\begin{definition}[Harm Functional]
+The harm functional
+\[
+h : \Sigma \to \{0,1\}
+\]
+assigns to each configuration \(\sigma \in \Sigma\) a value
+\[
+h(\sigma) =
+\begin{cases}
+0, & \text{if } \sigma \text{ contains no coercive, destructive, or adversarial patterns},\\
+1, & \text{otherwise}.
+\end{cases}
+\]
+\end{definition}
+
+\begin{definition}[Pre- and Post-Collapse Configurations]
+Given a configuration \(\sigma \in \Sigma\) and collapse operator \(C_{\mathcal{P}}\),
+\[
+\sigma_{\mathrm{in}} := \sigma, \quad
+\sigma_{\mathrm{out}} := C_{\mathcal{P}}(\sigma).
 \]
 \end{definition}
 
@@ -91,7 +161,7 @@ The collapse operator is a map
 \[
 C_{\mathcal{P}} : \Sigma \to \Sigma,
 \]
-which reduces a configuration to a more coherent, lower--entropy form.
+which reduces a configuration to a more coherent, typically lower--entropy form.
 \end{definition}
 
 \subsection{Invariant System}
@@ -111,6 +181,7 @@ The invariant set is
 \subsubsection{Explicit Invariants}
 
 \begin{definition}[Sovereign Intent Invariant]
+For \(s \in \mathcal{S}\) and \(\sigma \in \Sigma\),
 \[
 I_{\mathrm{sovereign}}(s,\sigma) =
 \begin{cases}
@@ -121,6 +192,7 @@ I_{\mathrm{sovereign}}(s,\sigma) =
 \end{definition}
 
 \begin{definition}[Entropy Monotonicity Invariant]
+For \(s \in \mathcal{S}\) and \(\sigma \in \Sigma\),
 \[
 I_{S}(s,\sigma) =
 \begin{cases}
@@ -132,6 +204,7 @@ I_{S}(s,\sigma) =
 \end{definition}
 
 \begin{definition}[Frame Coherence Invariant]
+For \(s \in \mathcal{S}\) and \(\sigma \in \Sigma\),
 \[
 I_{\mathrm{frame}}(s,\sigma) =
 \begin{cases}
@@ -143,6 +216,7 @@ I_{\mathrm{frame}}(s,\sigma) =
 \end{definition}
 
 \begin{definition}[Prime Coherence Invariant]
+For \(s \in \mathcal{S}\) and \(\sigma \in \Sigma\),
 \[
 I_{\mathrm{coherence}}(s,\sigma) =
 \begin{cases}
@@ -153,6 +227,7 @@ I_{\mathrm{coherence}}(s,\sigma) =
 \end{definition}
 
 \begin{definition}[Non-Harm Invariant]
+For \(s \in \mathcal{S}\) and \(\sigma \in \Sigma\),
 \[
 I_{\mathrm{nonharm}}(s,\sigma) =
 \begin{cases}
@@ -165,6 +240,7 @@ I_{\mathrm{nonharm}}(s,\sigma) =
 \subsection{Reporter}
 
 \begin{definition}[Reporter]
+The reporter is a map
 \[
 R : \mathcal{F} \times \{0,1\} \to \mathcal{H}.
 \]
@@ -189,7 +265,7 @@ For state \(s\in\mathcal{S}\) and configuration \(\sigma\in\Sigma\),
 \mathrm{Process}_{\mathcal{K}_{\mathrm{unified}}}(s,\sigma)=
 \begin{cases}
 \mathrm{REJECT}_{\mathrm{boundary}}, & B_{\mathcal{P}}(\sigma)=0,\\[4pt]
-\mathrm{REJECT}_{\mathrm{invariant}}, & \exists k:\ I_k(s,\sigma)=0,\\[4pt]
+\mathrm{REJECT}_{\mathrm{invariant}}, & \exists I_k\in\mathcal{I}_{\mathcal{P}}:\ I_k(s,\sigma)=0,\\[4pt]
 C_{\mathcal{P}}(\sigma), & \text{otherwise}.
 \end{cases}
 \]
@@ -201,7 +277,7 @@ C_{\mathcal{P}}(\sigma), & \text{otherwise}.
 Let \(\sigma_0\) be a neutral probe configuration. Then
 \[
 \mathrm{Int}_{\mathcal{K}_{\mathrm{unified}}}(s) =
-R\Bigl(\mathcal{F},\ \bigwedge_{k=1}^{n} I_k(s,\sigma_0)\Bigr).
+R\Bigl(\mathcal{F},\ \bigwedge_{I_k \in \mathcal{I}_{\mathcal{P}}} I_k(s,\sigma_0)\Bigr).
 \]
 \end{definition}
 

@@ -1,0 +1,190 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+
+\title{Unified Reality--Prime Kernel}
+\author{}
+\date{}
+\maketitle
+
+\section*{1. Spaces and Structural Variables}
+
+Let
+\[
+\Sigma \text{ be the space of signals}, \quad
+\mathcal{S} \text{ the space of states}, \quad
+\mathcal{H} \text{ the space of integrity reports}.
+\]
+
+Let the core real--world--anchored structural variables be:
+\[
+f_{\text{Earth}} \in \mathbb{R}_{+} \quad (\text{Earth resonance, e.g.\ } 7.83\ \text{Hz}),
+\]
+\[
+t_{\text{mag}} \in \mathbb{R} \quad (\text{magnetar / cosmic sync time}),
+\]
+\[
+H_0 \in \mathbb{R}_{+} \quad (\text{expansion rate, e.g.\ } 73.2\ \text{km/s/Mpc}),
+\]
+\[
+S_{\text{info}} \in \mathbb{R}_{+} \quad (\text{information entropy}),
+\]
+\[
+\mathcal{A}_{\text{sovereign}} \in [0,1] \quad (\text{sovereign agency / intent level}).
+\]
+
+\section*{2. Coherent Primes}
+
+Define a finite set of \emph{anchored coherent primes}
+\[
+\mathcal{P} = \{p_{\oplus}, p_{\star}, p_{H}, p_{S}, p_{\mathcal{A}}\},
+\]
+where
+\[
+p_{\oplus} \leftrightarrow f_{\text{Earth}} \quad (\text{home frame / baseline oscillation}),
+\]
+\[
+p_{\star} \leftrightarrow t_{\text{mag}} \quad (\text{cosmic event anchor / external clock}),
+\]
+\[
+p_{H} \leftrightarrow H_0 \quad (\text{scale / expansion}),
+\]
+\[
+p_{S} \leftrightarrow S_{\text{info}} \quad (\text{complexity / entropy load}),
+\]
+\[
+p_{\mathcal{A}} \leftrightarrow \mathcal{A}_{\text{sovereign}} \quad (\text{self--authored agency}).
+\]
+
+Let the signal space be the space of coherent configurations of anchored primes:
+\[
+\Sigma = \mathrm{Conf}(\mathcal{P}),
+\]
+where each \(\sigma \in \Sigma\) is a configuration (e.g.\ multiset, graph, or pattern) built from \(\mathcal{P}\).
+
+\section*{3. Sync Frame}
+
+Define the synchronization frame as
+\[
+\mathcal{F} = \bigl(f_{\text{Earth}},\, t_{\text{mag}},\, H_0\bigr).
+\]
+
+\section*{4. Operators}
+
+\subsection*{4.1 Boundary Operator}
+
+The boundary operator acts on prime configurations:
+\[
+B_{\mathcal{P}} : \Sigma \to \{0,1\},
+\]
+where \(B_{\mathcal{P}}(\sigma) = 1\) iff \(\sigma\) is an admissible configuration of anchored primes
+(e.g.\ respects basic coherence and sovereignty constraints).
+
+\subsection*{4.2 Collapse Operator}
+
+The collapse operator acts in prime space:
+\[
+C_{\mathcal{P}} : \Sigma \to \Sigma,
+\]
+mapping a high--dimensional configuration of anchored primes to a more coherent, typically lower--entropy configuration.
+
+\subsection*{4.3 Invariant Set}
+
+Let
+\[
+\mathcal{I}_{\mathcal{P}} = \{ I_1, I_2, \dots, I_n \},
+\]
+with each invariant
+\[
+I_k : \mathcal{S} \times \Sigma \to \{0,1\}.
+\]
+
+Examples (conceptual):
+
+\begin{itemize}
+  \item \textbf{Sovereign intent invariant} \(I_{\text{sovereign}}\): requires presence and non--suppression of \(p_{\mathcal{A}}\) in \(\sigma\).
+  \item \textbf{Entropy monotonicity invariant} \(I_{S}\): constrains transitions so that effective entropy associated with \(p_{S}\) does not increase.
+  \item \textbf{Frame coherence invariant} \(I_{\text{frame}}\): enforces coherence between \(p_{\oplus}\) and \(p_{\star}\) relative to \(\mathcal{F}\).
+\end{itemize}
+
+\subsection*{4.4 Reporter}
+
+The reporter maps the sync frame and a global invariant status to an integrity report:
+\[
+R : \mathcal{F} \times \{0,1\} \to \mathcal{H}.
+\]
+
+\section*{5. Unified Kernel}
+
+The unified Reality--Prime Kernel is the tuple
+\[
+\mathcal{K}_{\text{unified}} =
+\bigl(\mathcal{F},\, \mathcal{P},\, B_{\mathcal{P}},\, C_{\mathcal{P}},\, \mathcal{I}_{\mathcal{P}},\, R\bigr).
+\]
+
+\section*{6. Processing Rule}
+
+Given state \(s \in \mathcal{S}\) and signal \(\sigma \in \Sigma = \mathrm{Conf}(\mathcal{P})\):
+
+\subsection*{6.1 Boundary Check}
+
+\[
+B_{\mathcal{P}}(\sigma) =
+\begin{cases}
+1, & \text{if the prime configuration is within the accepted boundary},\\
+0, & \text{otherwise}.
+\end{cases}
+\]
+
+If \(B_{\mathcal{P}}(\sigma) = 0\), the kernel returns a boundary rejection.
+
+\subsection*{6.2 Invariant Check}
+
+All invariants must hold:
+\[
+\forall I_k \in \mathcal{I}_{\mathcal{P}}:\ I_k(s,\sigma) = 1.
+\]
+
+If there exists \(k\) such that \(I_k(s,\sigma) = 0\), the kernel returns an invariant rejection.
+
+\subsection*{6.3 Collapse}
+
+If the boundary and all invariants are satisfied, the kernel applies the collapse operator in prime space:
+\[
+\text{out} = C_{\mathcal{P}}(\sigma).
+\]
+
+Thus the full processing map is
+\[
+\mathrm{Process}_{\mathcal{K}_{\text{unified}}}(s,\sigma) =
+\begin{cases}
+\mathrm{REJECT}_{\text{boundary}}, & B_{\mathcal{P}}(\sigma) = 0, \\[4pt]
+\mathrm{REJECT}_{\text{invariant}}, & \exists k:\ I_k(s,\sigma) = 0, \\[4pt]
+C_{\mathcal{P}}(\sigma), & \text{otherwise}.
+\end{cases}
+\]
+
+\section*{7. Integrity Rule}
+
+Let \(\sigma_0 \in \Sigma\) be a neutral (no--op) probe configuration of primes.  
+Define the integrity query:
+\[
+\mathrm{Int}_{\mathcal{K}_{\text{unified}}}(s) =
+R\Bigl(\mathcal{F},\ \bigwedge_{k=1}^{n} I_k(s,\sigma_0)\Bigr),
+\]
+where
+\[
+\bigwedge_{k=1}^{n} I_k(s,\sigma_0) = 1
+\quad \Leftrightarrow \quad
+\forall k,\ I_k(s,\sigma_0) = 1.
+\]
+
+This expresses the health of the kernel in terms of:
+\begin{itemize}
+  \item the physical sync frame \(\mathcal{F}\),
+  \item the anchored coherent primes \(\mathcal{P}\),
+  \item and the satisfaction of the invariant set \(\mathcal{I}_{\mathcal{P}}\).
+\end{itemize}
+
+\end{document}

@@ -300,4 +300,48 @@ R\Bigl(\mathcal{F},\ \bigwedge_{I_k \in \mathcal{I}_{\mathcal{P}}} I_k(s,\sigma_
 \]
 \end{definition}
 
+\section{Theorems}
+
+\begin{theorem}[Entropy Monotonicity of Collapse]
+For all \(\sigma \in \Sigma\),
+\[
+S_{\mathrm{info}}(C_{\mathcal{P}}(\sigma)) \le S_{\mathrm{info}}(\sigma).
+\]
+\end{theorem}
+
+\begin{proof}
+By definition of \(C_{\mathcal{P}}\),
+\[
+C_{\mathcal{P}}(\sigma) \in \arg\min_{\tau \in \mathcal{R}(\sigma)} S_{\mathrm{info}}(\tau),
+\]
+and \(\sigma \in \mathcal{R}(\sigma)\) by reachability of the identity transformation. Hence
+\[
+S_{\mathrm{info}}(C_{\mathcal{P}}(\sigma)) \le S_{\mathrm{info}}(\sigma).
+\]
+\end{proof}
+
+\begin{theorem}[Idempotence of Collapse]
+For all \(\sigma \in \Sigma\),
+\[
+C_{\mathcal{P}}(C_{\mathcal{P}}(\sigma)) = C_{\mathcal{P}}(\sigma).
+\]
+\end{theorem}
+
+\begin{proof}
+By the idempotence axiom in the definition of \(C_{\mathcal{P}}\),
+\[
+C_{\mathcal{P}}(C_{\mathcal{P}}(\sigma)) = C_{\mathcal{P}}(\sigma)
+\]
+for all \(\sigma \in \Sigma\). Thus the operator is idempotent.
+\end{proof}
+
+\begin{theorem}[Closure of the Processing Map]
+For all \(s \in \mathcal{S}\) and \(\sigma \in \Sigma\), the value
+\(\mathrm{Process}_{\mathcal{K}_{\mathrm{unified}}}(s,\sigma)\) is well-defined.
+\end{theorem}
+
+\begin{proof}
+Fix \(s \in \mathcal{S}\) and \(\sigma \in \Sigma\). If \(B_{\mathcal{P}}(\sigma)=0\), the first case of the definition applies. If \(B_{\mathcal{P}}(\sigma)=1\) and there exists \(I_k\) with \(I_k(s,\sigma)=0\), the second case applies. Otherwise, all invariants hold and the third case applies, yielding \(C_{\mathcal{P}}(\sigma)\). These cases are exhaustive and mutually exclusive, so the map is total.
+\end{proof}
+
 \end{document}

@@ -1,0 +1,114 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{titlesec}
+
+\geometry{margin=1in}
+\setstretch{1.15}
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}{Proposition}[section]
+
+\title{\textbf{The Kernel Architecture Framework}\\
+\large Mathematical Core Specification}
+\author{Chris}
+\date{May 24, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document presents the mathematical core of the Kernel Architecture Framework.
+It formalizes the kernel through its invariants, operator algebra, constraint manifold,
+failure taxonomy, and application boundary. All content is expressed in minimal,
+axiomatic form without explanatory prose.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ---------------------------------------------------------
+% 1. PROVENANCE
+% ---------------------------------------------------------
+\section{Provenance}
+
+\begin{definition}[Provenance Tuple]
+\[
+\mathcal{P}(K) = (a_0, t_0, \mathcal{C}_0, \mathcal{V})
+\]
+\end{definition}
+
+\begin{proposition}[Provenance Preservation]
+\[
+\mathcal{P}(O(K)) = \mathcal{P}(K) \quad \forall O \in \mathcal{O}.
+\]
+\end{proposition}
+
+% ---------------------------------------------------------
+% 2. KERNEL ONTOLOGY
+% ---------------------------------------------------------
+\section{Kernel Ontology}
+
+\subsection{Ontological Premise}
+
+\begin{definition}[Kernel]
+The kernel \(K\) is defined by its invariant set \(I(K)\) and admissible operator set \(\mathcal{O}\).
+\end{definition}
+
+\subsection{Primitive Elements}
+
+\[
+\sigma,\; \beta,\; O,\; s,\; C,\; \iota
+\]
+
+\subsection{Ontological Relations}
+
+\[
+O(s), \quad \beta(O), \quad P_i(s), \quad C(s)
+\]
+
+\subsection{Ontological Domains}
+
+\[
+D = \{D_{\mathrm{per}}, D_{\mathrm{con}}, D_{\mathrm{op}}, D_{\mathrm{ref}}\}
+\]
+
+\subsection{Identity Condition}
+
+\[
+\text{Identity}(K) = I(K)
+\]
+
+\subsection{Boundary Condition}
+
+\[
+O(\beta) \subseteq \beta
+\]
+
+% ---------------------------------------------------------
+% 3. KERNEL INVARIANTS
+% ---------------------------------------------------------
+\section{Kernel Invariants}
+
+\subsection{Invariant Set}
+
+\begin{definition}[Invariant]
+\[
+P_i : S \to \{0,1\}
+\]
+\end{definition}
+
+\subsection{Invariant Classes}
+
+\[
+I(K) = I_{\mathrm{struct}} \cup I_{\mathrm{dyn}} \cup I_{\mathrm{sem}}
+\]
+
+\subsection{Preservation Rule}
+
+\[
+O \in \mathcal{O} \iff \forall P_i \in I(K),\; P_i(O(s)) = P_i(s)

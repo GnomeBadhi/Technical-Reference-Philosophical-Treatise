@@ -15,7 +15,7 @@
 
 \title{\textbf{The Kernel Architecture Framework}\\
 \large Mathematical Core Specification}
-\author{Chris}
+\author{Gnome Badhi}
 \date{May 24, 2026}
 
 \begin{document}
@@ -80,7 +80,7 @@ D = \{D_{\mathrm{per}}, D_{\mathrm{con}}, D_{\mathrm{op}}, D_{\mathrm{ref}}\}
 \subsection{Identity Condition}
 
 \[
-\text{Identity}(K) = I(K)
+\mathrm{Identity}(K) = I(K)
 \]
 
 \subsection{Boundary Condition}
@@ -112,3 +112,271 @@ I(K) = I_{\mathrm{struct}} \cup I_{\mathrm{dyn}} \cup I_{\mathrm{sem}}
 
 \[
 O \in \mathcal{O} \iff \forall P_i \in I(K),\; P_i(O(s)) = P_i(s)
+\]
+
+\subsection{Invariant Lattice}
+
+\[
+P_i \preceq P_j \iff P_j \Rightarrow P_i
+\]
+
+\subsection{Identity via Invariants}
+
+\[
+K_1 \equiv K_2 \iff I(K_1) = I(K_2)
+\]
+
+% ---------------------------------------------------------
+% 4. OPERATOR ALGEBRA
+% ---------------------------------------------------------
+\section{Operator Algebra}
+
+\subsection{Operator Space}
+
+\[
+\mathcal{O} = \{O : S \to S \mid O \text{ preserves } I(K)\}
+\]
+
+\subsection{Composition}
+
+\[
+O_2 \circ O_1 \in \mathcal{O}
+\]
+
+\subsection{Identity Operator}
+
+\[
+I_S(s) = s
+\]
+
+\subsection{Commutator}
+
+\[
+[O_i, O_j] = O_i O_j - O_j O_i
+\]
+
+\subsection{Operator Classes}
+
+\[
+\mathcal{O} =
+\mathcal{O}_{\mathrm{struct}} \cup
+\mathcal{O}_{\mathrm{dyn}} \cup
+\mathcal{O}_{\mathrm{sem}}
+\]
+
+\subsection{Boundary-Respecting Condition}
+
+\[
+O(\beta) \subseteq \beta
+\]
+
+\subsection{Coherence Condition}
+
+\[
+C(O(s)) \ge C_{\min}
+\]
+
+% ---------------------------------------------------------
+% 5. CONSTRAINT MANIFOLD
+% ---------------------------------------------------------
+\section{Constraint Manifold}
+
+\subsection{Definition}
+
+\[
+\mathcal{M}_C = \bigcap_i \{s \in S \mid P_i(s) = 0\}
+\]
+
+\subsection{Forbidden Region}
+
+\[
+\mathcal{F} = S \setminus \mathcal{M}_C
+\]
+
+\subsection{Admissible Operator Condition}
+
+\[
+O(\mathcal{M}_C) \subseteq \mathcal{M}_C
+\]
+
+\subsection{Boundary of the Manifold}
+
+\[
+\partial \mathcal{M}_C = \{s \mid C(s) = C_{\min}\}
+\]
+
+\subsection{Stability}
+
+\[
+B_\epsilon(s) \subseteq \mathcal{M}_C
+\]
+
+\subsection{Constraint Gradient Field}
+
+\[
+G(s) = \sum_i \lambda_i \nabla P_i(s)
+\]
+
+\subsection{Constraint-Preserving Flow}
+
+\[
+\phi_t(s) \in \mathcal{M}_C \quad \forall t
+\]
+
+% ---------------------------------------------------------
+% 6. FAILURE MODE TAXONOMY
+% ---------------------------------------------------------
+\section{Failure Mode Taxonomy}
+
+\subsection{Primary Failures}
+
+\[
+\mathcal{F}_{\mathrm{primary}} =
+\{\text{boundary},\; \text{invariant},\; \text{coherence},\; \text{operator},\; \text{cascade}\}
+\]
+
+\subsection{Secondary Failures}
+
+\[
+\mathcal{F}_{\mathrm{secondary}} =
+\{\text{temporal},\; \text{semantic},\; \text{saturation},\; \text{overwrite}\}
+\]
+
+\subsection{Severity Functional}
+
+\[
+\mathrm{Severity}(s) =
+E(s) + \alpha (C_{\min} - C(s))_+ + \beta \cdot \mathrm{CascadeDepth}(s)
+\]
+
+\subsection{Recovery Condition}
+
+\[
+\exists O \in \mathcal{O} : O(s) \in \mathcal{M}_C
+\]
+
+% ---------------------------------------------------------
+% 7. APPLICATION BOUNDARY (MEANING-FUNCTIONAL VERSION)
+% ---------------------------------------------------------
+\section{Application Boundary}
+
+Let $\mathcal{D}$ denote the space of all possible domains in which the kernel may be
+applied. The application boundary partitions $\mathcal{D}$ into three operational classes:
+valid, conditional, and forbidden. This partition is encoded by the meaning functional
+\[
+V : \mathcal{D} \to \{1, \tfrac12, 0\},
+\]
+where the codomain values are semantic response codes rather than numerical
+quantities.
+
+\subsection{Valid Region}
+
+\[
+\mathcal{A}_{\mathrm{valid}}
+= \{ d \in \mathcal{D} \mid \mathcal{O}_d \subseteq \mathcal{O} \},
+\qquad
+V(d) = 1.
+\]
+
+\subsection{Conditional Region}
+
+\[
+\mathcal{A}_{\mathrm{conditional}}
+= \{ d \in \mathcal{D} \mid \exists C_d : \mathcal{O}_d \cup C_d \subseteq \mathcal{O} \},
+\qquad
+V(d) = \tfrac12.
+\]
+
+\subsection{Forbidden Region}
+
+\[
+\mathcal{A}_{\mathrm{forbidden}}
+= \mathcal{D} \setminus (\mathcal{A}_{\mathrm{valid}} \cup \mathcal{A}_{\mathrm{conditional}}),
+\qquad
+V(d) = 0.
+\]
+
+\subsection{Meaning-Functional Validity Test}
+
+\[
+V(d) =
+\begin{cases}
+1 & d \in \mathcal{A}_{\mathrm{valid}}, \\
+\tfrac12 & d \in \mathcal{A}_{\mathrm{conditional}}, \\
+0 & d \in \mathcal{A}_{\mathrm{forbidden}}.
+\end{cases}
+\]
+
+\subsection{Boundary Conditions}
+
+For any domain \(d\) with \(V(d) \neq 0\):
+\[
+\begin{aligned}
+&\mathcal{O}_d \subseteq \mathcal{O}, \\
+&C(O_d(s)) \ge C_{\min}, \\
+&\mathcal{P}(O_d(K)) = \mathcal{P}(K).
+\end{aligned}
+\]
+For \(V(d) = \tfrac12\), these conditions may require augmentation by domain-specific
+constraints \(C_d\).
+
+% ---------------------------------------------------------
+% APPENDIX A — NOTATION
+% ---------------------------------------------------------
+\appendix
+\section{Notation Reference}
+
+\[
+\begin{aligned}
+&K &&\text{kernel} \\
+&S &&\text{state space} \\
+&s &&\text{state} \\
+&I(K) &&\text{invariant set} \\
+&\mathcal{O} &&\text{operator set} \\
+&\mathcal{M}_C &&\text{constraint manifold} \\
+&\mathcal{F} &&\text{forbidden region} \\
+&C(s) &&\text{coherence functional} \\
+&P_i &&\text{invariant predicate} \\
+&G(s) &&\text{constraint gradient field} \\
+&\phi_t &&\text{constraint-preserving flow}
+\end{aligned}
+\]
+
+% ---------------------------------------------------------
+% APPENDIX B — SYMBOL CLARIFICATION AND OCR ERROR MAP
+% ---------------------------------------------------------
+\section*{Appendix B — Symbol Clarification and OCR Error Map}
+
+The following table lists common OCR or export substitutions observed in some
+renderings of this manuscript. The left column shows the incorrect or ambiguous
+form; the right column shows the correct mathematical symbol or expression.
+
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Incorrect / OCR Form} & \textbf{Correct Symbol or Expression} \\
+\hline
+\texttt{C} & $\subseteq$ \\
+\texttt{U} & $\cup$ \\
+\texttt{E} & $\in$ \\
+\texttt{CO} & $\subseteq \mathcal{O}$ \\
+\texttt{3} & $\exists$ \\
+\texttt{V} & $\forall$ \\
+\texttt{=>} & $\Rightarrow$ \\
+\texttt{->} & $\to$ \\
+\texttt{0 : S -> S} & $O : S \to S$ \\
+\texttt{O2 001} & $O_2 \circ O_1$ \\
+\texttt{aMc} & $\partial \mathcal{M}_C$ \\
+\texttt{BE(s)} & $B_\epsilon(s)$ \\
+\texttt{LA V P\_i(s)} & $\lambda_i \nabla P_i(s)$ \\
+\texttt{Pt(s)} & $\phi_t(s)$ \\
+\texttt{Avalid U Aconditional} & $\mathcal{A}_{\mathrm{valid}} \cup \mathcal{A}_{\mathrm{conditional}}$ \\
+\texttt{V(d) = \{1,2,0\}} & $V(d) \in \{1, \tfrac12, 0\}$ \\
+\texttt{Istruct U Idyn U Isem} & $I_{\mathrm{struct}} \cup I_{\mathrm{dyn}} \cup I_{\mathrm{sem}}$ \\
+\end{tabular}
+\end{center}
+
+This table is authoritative for resolving any discrepancies between the intended
+mathematical notation and artifacts introduced by PDF generation, OCR, or text
+extraction systems.
+
+\end{document}

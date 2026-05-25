@@ -1,0 +1,148 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{A Kernel-Theoretic Formulation of Coherence, Energy Partition, and Radiation Dynamics}
+\author{Chris}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document presents a first-principles mathematical formulation of a kernel-based coherence model, an associated energy partition into internal and radiated components, a coherence-driven radiation threshold, and a PDE formulation for spatially extended systems. The construction is substrate-agnostic and applies equally to physical, computational, and synthetic systems.
+\end{abstract}
+
+\section{State Space and Triadic Structure}
+
+Let $X$ be a nonempty set of system states.  
+For each $x \in X$, define three structural projections
+\[
+\pi_i : X \to S_i, \qquad i \in \{1,2,3\},
+\]
+where each $S_i$ is a metric space with metric $d_i$.
+Comparison maps
+\[
+f_{ij} : S_j \to S_i
+\]
+allow the three projections to be evaluated in a common frame.
+
+Define pairwise disagreement:
+\[
+d_{12}(x) = d_1\big(\pi_1(x), f_{12}(\pi_2(x))\big),
+\]
+\[
+d_{23}(x) = d_2\big(\pi_2(x), f_{23}(\pi_3(x))\big),
+\]
+\[
+d_{31}(x) = d_3\big(\pi_3(x), f_{31}(\pi_1(x))\big).
+\]
+
+Total disagreement:
+\[
+D(x) = d_{12}(x) + d_{23}(x) + d_{31}(x) \ge 0.
+\]
+
+\section{Coherence Functional}
+
+Define coherence as the normalized inverse of disagreement:
+\[
+C(x) = \frac{1}{1 + D(x)} \in (0,1].
+\]
+Thus $C(x) = 1$ corresponds to perfect triadic alignment and $C(x) \to 0$ corresponds to maximal disagreement.
+
+\section{Energy Partition}
+
+Let $u(x)$ denote internal energy and $w(x)$ radiated energy.  
+Assume local conservation:
+\[
+e_{\mathrm{tot}}(x) = u(x) + w(x),
+\]
+where $e_{\mathrm{tot}} : X \to \mathbb{R}$ is fixed.
+
+Define internal energy as a strictly decreasing function of coherence:
+\[
+u(x) = U_{\max}(x) - \beta C(x), \qquad \beta > 0.
+\]
+
+Then radiated energy is
+\[
+w(x) = e_{\mathrm{tot}}(x) - u(x)
+= e_{\mathrm{tot}}(x) - U_{\max}(x) + \beta C(x).
+\]
+
+Thus higher coherence implies greater radiated energy.
+
+\section{Radiation Threshold}
+
+Let $C^\*(x) \in (0,1]$ be a coherence threshold.  
+Define the radiation rate
+\[
+R(x) =
+\begin{cases}
+0, & C(x) \le C^\*(x), \\
+\beta\big(C(x) - C^\*(x)\big), & C(x) > C^\*(x).
+\end{cases}
+\]
+
+\section{Spatial Extension and Kernel PDE Formulation}
+
+Let $\Omega \subset \mathbb{R}^n$ be a bounded domain with smooth boundary, and let
+\[
+C : [0,\infty) \times \Omega \to (0,1]
+\]
+be the coherence field.
+
+Define the kernel functional
+\[
+F[C] = \int_{\Omega} \left( \frac{\kappa}{2} |\nabla C(x)|^2 + V(C(x)) \right) dx,
+\]
+where $\kappa > 0$ and $V : (0,1] \to \mathbb{R}$ is a smooth potential.
+
+The coherence field evolves by gradient flow:
+\[
+\partial_t C(t,x) = -\frac{\delta F}{\delta C}(C)(x)
+= \kappa \Delta C(t,x) - V'(C(t,x)).
+\]
+
+A common choice is
+\[
+V(C) = \frac{\lambda}{2}(1 - C)^2,
+\]
+yielding the reaction--diffusion equation
+\[
+\partial_t C(t,x)
+= \kappa \Delta C(t,x) + \lambda(1 - C(t,x)).
+\]
+
+\section{Radiated Energy PDE}
+
+Let $w(t,x)$ denote radiated energy density.  
+Assume diffusion with coherence-driven source:
+\[
+\partial_t w(t,x) - \nabla \cdot (D_w \nabla w(t,x))
+=
+\begin{cases}
+0, & C(t,x) \le C^\*(x), \\
+\beta\big(C(t,x) - C^\*(x)\big), & C(t,x) > C^\*(x).
+\end{cases}
+\]
+
+Internal energy is then
+\[
+u(t,x) = e_{\mathrm{tot}}(x) - w(t,x),
+\]
+and satisfies
+\[
+\partial_t u(t,x)
+= \nabla \cdot (D_w \nabla w(t,x)) - R(t,x).
+\]
+
+\section{Conclusion}
+
+This document provides a complete kernel-theoretic formulation of coherence, energy partition, radiation thresholds, and PDE dynamics. The construction is general and applies to any system in which coherence acts as a structural variable coupled to energy redistribution.
+
+\end{document}

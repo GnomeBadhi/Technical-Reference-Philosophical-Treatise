@@ -1,0 +1,177 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{The Scripture Kernel: Formal Specification}
+\author{Chris}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{1. Kernel Definition}
+
+\[
+\mathcal{K} = (N, P, R, \Sigma)
+\]
+
+\noindent
+Where:
+\begin{itemize}
+    \item $N$ = set of nodes
+    \item $P$ = primitive predicates
+    \item $R$ = relations (directed edges)
+    \item $\Sigma$ = invariants
+\end{itemize}
+
+\section*{2. Node Set}
+
+\[
+N = \{F, S, H, X\}
+\]
+
+\noindent
+Where:
+\[
+F = \text{Father}, \quad
+S = \text{Son}, \quad
+H = \text{Holy Spirit}, \quad
+X = \text{People}
+\]
+
+\section*{3. Primitive Predicates}
+
+\subsection*{3.1 Unary Predicates}
+
+\[
+\mathrm{Source}(F)
+\]
+
+\[
+\mathrm{Presence}(H, x) \quad x \in X
+\]
+
+\subsection*{3.2 Binary Predicates}
+
+\[
+\mathrm{Word}(F, S)
+\]
+
+\[
+\mathrm{Image}(S, F)
+\]
+
+\subsection*{3.3 Ternary Predicates}
+
+\[
+\mathrm{Mediates}(S, F, x) \quad x \in X
+\]
+
+\[
+\mathrm{Transforms}(H, x, x') \quad x, x' \in X
+\]
+
+\section*{4. Relations}
+
+\subsection*{4.1 Revelation Flow}
+
+\[
+F \rightarrow S \quad \text{defined by} \quad \mathrm{Word}(F,S)
+\]
+
+\subsection*{4.2 Representation Flow}
+
+\[
+S \rightarrow F \quad \text{defined by} \quad \mathrm{Image}(S,F)
+\]
+
+\subsection*{4.3 Presence Flow}
+
+\[
+F \rightarrow H, \qquad S \rightarrow H
+\]
+
+\subsection*{4.4 Application Flow}
+
+\[
+H \rightarrow X
+\]
+
+\[
+\mathrm{Presence}(H,x), \quad \mathrm{Transforms}(H,x,x')
+\]
+
+\subsection*{4.5 Return Flow}
+
+\[
+X \rightarrow F \quad \text{defined by} \quad \mathrm{Mediates}(S,F,x)
+\]
+
+\section*{5. Transition System}
+
+Define a transition operator:
+\[
+\Rightarrow : N \rightarrow N
+\]
+
+\[
+F \Rightarrow S \Rightarrow H \Rightarrow X \Rightarrow F
+\]
+
+\section*{6. Kernel Invariants}
+
+\subsection*{6.1 Uniqueness of Source}
+
+\[
+\forall n \in N,\; \mathrm{Source}(n) \Rightarrow n = F
+\]
+
+\subsection*{6.2 Exclusivity of Mediation}
+
+\[
+\forall x \in X,\; \mathrm{Access}(x,F) \Leftrightarrow \mathrm{Mediates}(S,F,x)
+\]
+
+\subsection*{6.3 Presence Precedes Transformation}
+
+\[
+\forall x,x' \in X,\; \mathrm{Transforms}(H,x,x') \Rightarrow \mathrm{Presence}(H,x)
+\]
+
+\subsection*{6.4 No Direct Access to Source}
+
+\[
+\forall x \in X,\; \neg \mathrm{DirectAccess}(x,F)
+\]
+
+Unless:
+
+\[
+\mathrm{Mediates}(S,F,x)
+\]
+
+\subsection*{6.5 All Valid State-Change is Spirit-Generated}
+
+\[
+\forall x,x' \in X,\; \mathrm{SpiritualChange}(x,x') \Rightarrow \exists H,\; \mathrm{Transforms}(H,x,x')
+\]
+
+\section*{7. Minimal Kernel Summary}
+
+\[
+\begin{aligned}
+&\mathrm{Source}(F) \\
+&\mathrm{Word}(F,S) \\
+&\mathrm{Image}(S,F) \\
+&\mathrm{Mediates}(S,F,X) \\
+&\mathrm{Presence}(H,X) \\
+&\mathrm{Transforms}(H,X)
+\end{aligned}
+\]
+
+\[
+F \rightarrow S \rightarrow H \rightarrow X \rightarrow F
+\]
+
+\end{document}

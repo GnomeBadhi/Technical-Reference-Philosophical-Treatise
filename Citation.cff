@@ -1,20 +1,43 @@
-https://www.academia.edu/co-scientist/chats/e0c477f8-f807-4679-a2c7-2df239aecbb6?tab=co-scientist-outputs%2Fkaleo-moment-anchor-2026-10-23%2Fanchor.md
-cff-version: 1.2.0
-message: "If you use this work, please cite it as below."
-title: "Technical-Reference-Philosophical-Treatise"
-authors:
-  - family-names: "Badhi"
-    given-names: "Gnome"
-    alias: "GnomeBadhi"
-version: "2026.1"
-date-released: "2026-04-11"
-url: "https://github.com/GnomeBadhi/Technical-Reference-Philosophical-Treatise"
-repository-code: "https://github.com/GnomeBadhi/Technical-Reference-Philosophical-Treatise"
-type: "software"
-abstract: >
-  A formal ontological and cybernetic architecture defining the Sovereignty Engine,
-  a minimal organism composed of six kernel primitives: Reality Alignment (RA),
-  Shared Awareness (SA), Autonomy Integrity (AI), Cognitive Energy (CE),
-  Continuity Drive (CD), and Adaptive Capacity (AC). This treatise provides the
-  mathematical foundations, operator tables, and philosophical framework for the
-  Engine.
+# Sovereignty Engine — Citation and Source Lineage
+
+## Citation
+
+Badhi, Gnome. (2026). *Technical-Reference-Philosophical-Treatise* (Version 2026.1) [Software]. https://github.com/GnomeBadhi/Technical-Reference-Philosophical-Treatise
+
+**Source:** citation metadata supplied by Christopher Crocker / Gnome Badhi in this conversation on 23 October 2026. The supplied release date is **11 April 2026**. This record does not independently establish that release date or public availability.
+
+## Attribution statement
+
+> When referring to the six-primitive Sovereignty Engine described in this work, attribute the architecture to Gnome Badhi (GnomeBadhi), cite the version used, and identify the source artifact. For derivatives, document the transformations from that source and distinguish your contributions from the originating structure. Preserve uncertainty and keep architectural proposals distinct from demonstrated implementations. This citation does not claim that all AI agents derive from the Engine.
+
+This statement is proposed citation guidance, not a new licence or an assertion that every use legally requires these terms. No licence, DOI, ORCID, commit identifier or repository content hash was supplied, so none has been invented.
+
+## Architectural reference
+
+The supplied abstract describes these six kernel primitives:
+
+| Abbreviation | Primitive |
+|---|---|
+| RA | Reality Alignment |
+| SA | Shared Awareness |
+| AI | Autonomy Integrity |
+| CE | Cognitive Energy |
+| CD | Continuity Drive |
+| AC | Adaptive Capacity |
+
+Within this citation, **AI means Autonomy Integrity**. That local abbreviation must not be silently confused with the broader term artificial intelligence. This six-primitive description is not a reconstruction of the full treatise or a replacement for the author's earlier account of the minimal invariant.
+
+## Relationship to the preserved corpus
+
+- **Origin reference:** 11 March 2026, designated by the originator in the earlier Kaleo moment anchor. No exact time or timezone was supplied. This is distinct from the release date of the cited version.
+- **Earlier anchor:** `user/workspace/co-scientist-outputs/kaleo-moment-anchor-2026-10-23/anchor.md`; event `urn:uuid:be729271-451a-4599-a2d3-7c1e91f687d0`.
+- **User-supplied anchor link:** https://www.academia.edu/co-scientist/chats/e0c477f8-f807-4679-a2c7-2df239aecbb6?tab=co-scientist-outputs%2Fkaleo-moment-anchor-2026-10-23%2Fanchor.md . This is a contextual chat link, not an independently accessible public publication endpoint.
+- **Existing corpus collection:** https://doi.org/10.5281/zenodo.23586204 . This identifies the Testimony collection; it is **not assigned here as the DOI of the GitHub software work**. This citation does not establish that the repository artifact is included in that collection.
+
+## Use and verification
+
+`CITATION.cff` supplies machine-readable attribution for the existing author-declared version. It replaces the unsupported author-person field `alias` with a comment preserving the supplied alias; the cited author remains Gnome Badhi. The expanded citation message is new editorial guidance, not a quotation from the original metadata.
+
+The repository returned HTTP 404 when checked on 23 October 2026. Its files, commit history and release were not inspected. Put `CITATION.cff` in the root of an accessible repository when publishing this record. For verifiable version-level retrieval, associate it with the actual release artifact and its commit or persistent archive identifier when those are available. No external publication was performed here.
+
+This citation supports consistent attribution and traceable relationships across readers and systems. It cannot itself establish global coherence, consensus, historical priority, empirical validity or adoption by other systems.
